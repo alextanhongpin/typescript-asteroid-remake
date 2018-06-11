@@ -1,0 +1,12 @@
+{
+  "name": "asteroid-remake",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "init": "./node_modules/.bin/tsc --init",
+    "start": "./node_modules/.bin/tsc -w"
+  },
+  "author": "alextanhongpin <alextan220990@gmail.com>",
+  "license": "ISC"
+}
