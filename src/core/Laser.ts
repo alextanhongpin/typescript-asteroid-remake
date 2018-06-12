@@ -2,14 +2,16 @@ import Body from "./Body";
 import { WeaponType } from "./Weapon";
 
 class Laser extends Body {
-  _draw(ctx: CanvasRenderingContext2D) {
-    ctx.rotate(-this.theta)
-    ctx.rotate(0)
+  draw(ctx: CanvasRenderingContext2D) {
+    ctx.save()
+    ctx.translate(this.x, this.y)
     ctx.beginPath()
+
+
     let thetaX = Math.cos(this.theta)
     let thetaY = Math.sin(this.theta)
     ctx.moveTo(thetaX * this.radius, thetaY * this.radius)
-    ctx.lineTo(thetaX * window.innerWidth, thetaY * window.innerHeight)
+    ctx.lineTo(thetaX * window.innerWidth, thetaY * window.innerWidth)
     ctx.lineWidth = 3
 
     let gradient = ctx.createLinearGradient(10, 0, 500, 0)
@@ -24,10 +26,12 @@ class Laser extends Body {
     ctx.stroke()
 
     ctx.closePath()
+    ctx.restore()
   }
 }
 
 class LaserWeapon {
+  damage = 20;
   type: WeaponType;
   ammos: { [id: number]: Laser };
   count: number;
@@ -46,7 +50,7 @@ class LaserWeapon {
   }
   reload(body: Body) {
     if (Object.keys(this.ammos).length < this.count) {
-      let newBullet = new Laser(body.x, body.y, body.theta, this.velocity, this.radius, 0)
+      let newBullet = new Laser(body.x, body.y, body.theta, this.velocity, this.radius, 0, 9999)
       this.ammos[++this.id] = newBullet
       let id = this.id
       window.setTimeout(() => {

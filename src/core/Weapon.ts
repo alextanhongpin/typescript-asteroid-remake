@@ -6,6 +6,7 @@ export enum WeaponType {
 }
 
 export interface Weapon {
+  damage: number;
   type: WeaponType;
   ammos: { [id: number]: Body };
   reload(body: Body): void;
