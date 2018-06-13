@@ -44,7 +44,6 @@ class Asteroid extends Body {
     if (this.y < 0) {
       this.y = window.innerHeight
     }
-
     if (this.healthBar) {
       this.healthBar.x = this.x
       this.healthBar.y = this.y - 20

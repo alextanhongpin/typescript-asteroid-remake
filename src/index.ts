@@ -72,7 +72,7 @@ import Observer from './utils/Observer'
     let friction = 0
     let hp = 100
 
-    let healthBar = new HealthBar(x, y, theta, velocity, radius, friction, hp)
+    let healthBar = new HealthBar(x, y, 0, velocity, radius, friction, hp)
     let effect = new Effect(12)
     let bullet = new BulletWeapon(WeaponType.Bullet, 10, 2, 3, 7500)
     let alien = new Alien(x, y, theta, velocity, radius, friction, hp)
