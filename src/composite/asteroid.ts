@@ -6,6 +6,7 @@ import Asteroid from "../drawable/asteroid";
 import Body from "../core/body";
 import Spark from "../core/Spark";
 import Observer from "../utils/Observer";
+import { WeaponType } from '../core/weapon'
 
 class CompositeAsteroid extends Body implements Damageable, Asteroid {
   constructor(x: number, y: number, theta: number, velocity: number, radius: number, friction: number, hp: number) {
@@ -25,9 +26,12 @@ class CompositeAsteroid extends Body implements Damageable, Asteroid {
     }
     this._effect = new Spark(6)
     this._observer = new Observer()
-    this._observer.on('collide', (body: Body) => {
-      // Setup spark effect
-      this._effect.setup(body)
+    this._observer.on('collide', (body: Body, type: WeaponType) => {
+      
+      if (type === WeaponType.Bullet) {
+        // Setup spark effect
+        this._effect.setup(body)
+      }
 
       // Show the health bar temporarily when damaged
       this._healthState.isVisible = true
@@ -50,10 +54,12 @@ class CompositeAsteroid extends Body implements Damageable, Asteroid {
     super.update()
     this._updateAsteroid()
     this._updateHealth()
+    this._updateEffect()
   }
   draw(ctx: CanvasRenderingContext2D) {
     this._drawAsteroid(ctx)
     this._drawHealth(ctx)
+    this._drawEffect(ctx)
   }
 
   // Health

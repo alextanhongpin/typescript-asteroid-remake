@@ -69,13 +69,12 @@ export default class Game {
         if (ammo.collision(asteroid)) {
           // Deduct hp
           asteroid.emit('damage', weapon.damage)
-
           // Remove the weapon
           delete weapon.ammos[Number(ammoId)]
 
           // Setup the spark effect when the bullet hits the asteroid's surface
           ammo.observerTheta = Math.atan2(ammo.y - asteroid.y, ammo.x - asteroid.x)
-          asteroid.emit('collide', ammo)
+          asteroid.emit('collide', ammo, weapon.type)
 
           this.observer.emit('message', shootAsteroidMessages[Math2.random(0, shootAsteroidMessages.length - 1)])
 

@@ -1,5 +1,6 @@
 import Body from "./body";
 import Particle from "./particle";
+import Math2 from '../utils/math2'
 
 class Spark {
   particles: Particle[];
@@ -8,21 +9,21 @@ class Spark {
     this.count = count;
     this.particles = []
   }
-  setup(_body: Body) {
-    // let degree = 180 / this.count
-    this.particles = Array(this.count).fill(0).map((_, _i) => {
-      // let theta = Math2.degreeToTheta(degree * i) + (body.observerTheta ? body.observerTheta - Math.PI / 2 : 0)
-      // let thetaX = Math.cos(theta)
-      // let thetaY = Math.sin(theta)
-      // let spread = 10
+  setup(body: Body) {
+    let degree = 180 / this.count
+    this.particles = Array(this.count).fill(0).map((_, i) => {
+      let theta = Math2.degreeToTheta(degree * i) + (body.observerTheta ? body.observerTheta - Math.PI / 2 : 0)
+      let thetaX = Math.cos(theta)
+      let thetaY = Math.sin(theta)
+      let spread = 10
 
-      // let x = body.x + thetaX * spread
-      // let y = body.y + thetaY * spread
-      // let velocity = 0.5
-      // let radius = 2
-      // let friction = 0.95
-      // return new Particle(x, y, theta, velocity, radius, friction, 0)
-      return new Particle()
+      let particle = new Particle()
+      particle.x = body.x + thetaX * spread
+      particle.y = body.y + thetaY * spread
+      particle.velocity = 0.5
+      particle.radius = 2
+      particle.friction = 0.95
+      return particle
     })
   }
   draw(ctx: CanvasRenderingContext2D) {
