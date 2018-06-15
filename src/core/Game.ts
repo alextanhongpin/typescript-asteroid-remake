@@ -1,12 +1,11 @@
-import KeyCode from "../utils/KeyCode";
-import Body from "./Body";
-import Asteroid from "./Asteroid";
-import Ship from "./Ship";
-import { WeaponType } from "./Weapon";
-import Alien from "./Alien";
+import KeyCode from "../utils/keycode";
+import Body from "./body";
+import Asteroid from "../composite/asteroid"
+import Ship from "../composite/ship"
+import Alien from "../composite/alien"
+import { WeaponType, Weapon } from "./weapon";
 import Observer from "../utils/Observer";
-import Math2 from "../utils/Math2";
-
+import Math2 from '../utils/math2'
 
 let alientAttackMessages = [
   'oopps, that must hurt real bad',
@@ -20,23 +19,23 @@ let asteroidMessages = [
   'watch out!'
 ]
 
-class Game {
-  private observer?: Observer
+let shootAsteroidMessages = [
+  'piu piu piu',
+  'take that, stones!',
+  'you rock'
+]
+
+
+export default class Game {
+  private observer: Observer = new Observer();
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private requestId: number;
-  private isSetup: boolean;
-  private bodies: { [id: number]: Body };
-  private cache: { [id: string]: number }
-  private showHealthBarDuration: number;
+  private requestId: number = -1;
+  private isSetup: boolean = false;
+  private bodies: { [id: number]: Body } = {};
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
     this.ctx = this.canvas.getContext('2d')!
-    this.requestId = -1
-    this.isSetup = false
-    this.bodies = {}
-    this.cache = {}
-    this.showHealthBarDuration = 3000
   }
   setup(): Game {
     if (this.isSetup) {
@@ -63,198 +62,143 @@ class Game {
     this.requestId = -1
     return this
   }
+  _shipWeaponAndAsteroidCollision(weapon: Weapon, asteroid: Asteroid, asteroidId: string) {
+    // Check if the asteroid is hit by the ship's weapon
+    Object.entries(weapon.ammos).forEach(([ammoId, ammo]: [string, Body]) => {
+      if (weapon.type === WeaponType.Bullet) {
+        if (ammo.collision(asteroid)) {
+          // Deduct hp
+          asteroid.emit('damage', weapon.damage)
+
+          // Remove the weapon
+          delete weapon.ammos[Number(ammoId)]
+
+          // Setup the spark effect when the bullet hits the asteroid's surface
+          ammo.observerTheta = Math.atan2(ammo.y - asteroid.y, ammo.x - asteroid.x)
+          asteroid.emit('collide', ammo)
+
+          this.observer.emit('message', shootAsteroidMessages[Math2.random(0, shootAsteroidMessages.length - 1)])
+
+          // Asteroid is destroyed completely when hp drops below 0
+          // and is removed from the game
+          if (asteroid.hp < 0) {
+            delete this.bodies[Number(asteroidId)]
+          }
+        }
+      } else if (weapon.type === WeaponType.Laser) {
+        let laserY = (asteroid.x - ammo.x) * Math.tan(ammo.theta)
+        if (Math.abs(ammo.y + laserY - asteroid.y) < asteroid.radius) {
+          asteroid.emit('damage', weapon.damage)
+          asteroid.emit('collide', ammo)
+          if (asteroid.hp < 0) {
+            delete this.bodies[Number(asteroidId)]
+          }
+        }
+      }
+    })
+  }
+  _shipAndAsteroidCollision(asteroid: Asteroid, ship: Ship, shipId: string) {
+    if (asteroid.collision(ship)) {
+      ship.emit('damage', asteroid.damage)
+      ship.emit('collide', asteroid)
+      this.observer.emit('message', asteroidMessages[Math2.random(0, asteroidMessages.length - 1)])
+      if (ship.hp < 0) {
+        delete this.bodies[Number(shipId)]
+        this.observer.emit('message', 'game over')
+      }
+    }
+  }
+  _shipWeaponAndAlienCollision(weapon: Weapon, alien: Alien, alienId: string) {
+    // Check if alien is hit by the ship's weapon
+    Object.entries(weapon.ammos).forEach(([ammoId, ammo]: [string, Body]) => {
+      if (weapon.type === WeaponType.Bullet) {
+        if (ammo.collision(alien)) {
+          // Deduct hp
+          alien.emit('damage', weapon.damage)
+
+          // Remove the weapon
+          delete weapon.ammos[Number(ammoId)]
+          
+          alien.emit('collide', ammo)
+
+          // Alien is destroyed completely when hp drops below 0
+          // and is removed from the game
+          if (alien.hp < 0) {
+            delete this.bodies[Number(alienId)]
+            this.observer.emit('message', 'you kill an alien, you are awesome!')
+          }
+        }
+      } else if (weapon.type === WeaponType.Laser) {
+        let laserY = (alien.x - ammo.x) * Math.tan(ammo.theta)
+        if (Math.abs(ammo.y + laserY - alien.y) < alien.radius) {
+          alien.emit('damage', weapon.damage)
+          alien.emit('collide', ammo)
+          if (alien.hp < 0) {
+            delete this.bodies[Number(alienId)]
+            this.observer.emit('message', 'down you go, alien!')
+          }
+        }
+      }
+    })
+  }
+
+  _alienWeaponAndShipCollision(weapon: Weapon, ship: Ship, shipId: string) {
+    Object.entries(weapon.ammos).forEach(([ammoId, ammo]: [string, Body]) => {
+      if (ammo.collision(ship)) {
+        // Deduct hp
+        ship.emit('damage', weapon.damage)
+
+        // Remove the weapon
+        delete weapon.ammos[Number(ammoId)]
+
+        ship.emit('collide', ammo)
+
+        this.observer.emit('message', alientAttackMessages[Math2.random(0, alientAttackMessages.length - 1)])
+
+        // Asteroid is destroyed completely when hp drops below 0
+        // and is removed from the game
+        if (ship.hp < 0) {
+          delete this.bodies[Number(shipId)]
+          this.observer.emit('message', 'game over')
+        }
+      }
+    })
+  }
+  _checkCollision(ship: Ship, shipId: string) {
+    let weapon: Weapon = ship.getWeapon()
+
+    Object.entries(this.bodies).forEach(([id, body]: [string, Body]) => {
+      if (body instanceof Asteroid) {
+        let asteroidId = id
+        let asteroid: Asteroid = body
+        this._shipWeaponAndAsteroidCollision(weapon, asteroid, asteroidId)
+        this._shipAndAsteroidCollision(asteroid, ship, shipId)
+      }
+    
+      if (body instanceof Alien) {
+        let alienId = id
+        let alien = body
+
+        // Alien's eye will track the ship's movement
+        alien.eyeTheta = Math.atan2(ship.y - alien.y, ship.x - alien.x)
+    
+        this._shipWeaponAndAlienCollision(weapon, alien, alienId)
+        this._alienWeaponAndShipCollision(alien.getWeapon(), ship, shipId)
+      }
+    })
+  }
   draw() {
     this.ctx.save()
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     if (Object.values(this.bodies).length === 1 && this.bodies[0] instanceof Ship) {
-      this.observer!.emit('message', 'you saved the universe again! well done!')
+      this.observer.emit('message', 'you saved the universe again! well done!')
     }
-
-    Object.entries(this.bodies).forEach(([id, body]: [string, Body]) => {
+    let bodies = Object.entries(this.bodies)
+    bodies.forEach(([id, body]: [string, Body]) => {
       body.draw(this.ctx)
       body.update()
-
-      if (body instanceof Asteroid) {
-        let asteroid: Asteroid = body
-        Object.entries(this.bodies).forEach(([_, body2]: [string, Body]) => {
-          if (body2 instanceof Ship) {
-            let ship = body2
-            let weapon = ship.getWeapon()
-
-            // Check if the asteroid is hit by the weapons
-            if (weapon.type === WeaponType.Bullet) {
-              Object.entries(ship.getWeapon().ammos).forEach(([ammoId, ammo]: [string, Body]) => {
-                if (ammo.collision(asteroid)) {
-                  // Deduct hp
-                  asteroid.hp -= weapon.damage
-
-                  // Remove the weapon
-                  delete ship.getWeapon().ammos[Number(ammoId)]
-
-                  // Setup the spark effect when the bullet hits the asteroid's surface
-                  ammo.observerTheta = Math.atan2(ammo.y - asteroid.y, ammo.x - asteroid.x)
-                  asteroid.effect!.setup(ammo)
-
-                  // Show the health bar temporarily when damaged
-                  asteroid.healthBar!.isVisible = true
-
-                  // Prevent the health bar from 'flickering' when multiple bullets hits the asteroid
-                  let cacheId = `bullet:${ammoId}`
-                  if (this.cache[cacheId]) {
-                    window.clearTimeout(this.cache[cacheId])
-                  }
-                  this.cache[cacheId] = window.setTimeout(() => {
-                    asteroid.healthBar!.isVisible = false
-                  }, this.showHealthBarDuration)
-
-                  // Asteroid is destroyed completely when hp drops below 0
-                  // and is removed from the game
-                  if (asteroid.hp < 0) {
-                    delete this.bodies[Number(id)]
-                    window.clearTimeout(this.cache[cacheId])
-                    delete this.cache[cacheId]
-                  }
-                }
-              })
-            }
-          }
-        })
-      }
-
-      if (body instanceof Alien) {
-        let alien: Alien = body
-        Object.entries(this.bodies).forEach(([_, body2]: [string, Body]) => {
-          if (body2 instanceof Ship) {
-            let ship = body2
-            let weapon = ship.getWeapon()
-
-            // Check if the asteroid is hit by the weapons
-            if (weapon.type === WeaponType.Bullet) {
-              Object.entries(ship.getWeapon().ammos).forEach(([ammoId, ammo]: [string, Body]) => {
-                if (ammo.collision(alien)) {
-                  // Deduct hp
-                  alien.hp -= weapon.damage
-
-                  // Remove the weapon
-                  delete ship.getWeapon().ammos[Number(ammoId)]
-
-                  // Show the health bar temporarily when damaged
-                  alien.healthBar!.isVisible = true
-
-                  // Prevent the health bar from 'flickering' when multiple bullets hits the asteroid
-                  let cacheId = `ship:bullet:${ammoId}`
-                  if (this.cache[cacheId]) {
-                    window.clearTimeout(this.cache[cacheId])
-                  }
-                  this.cache[cacheId] = window.setTimeout(() => {
-                    alien.healthBar!.isVisible = false
-                  }, this.showHealthBarDuration)
-
-                  // Asteroid is destroyed completely when hp drops below 0
-                  // and is removed from the game
-                  if (alien.hp < 0) {
-                    delete this.bodies[Number(id)]
-                    window.clearTimeout(this.cache[cacheId])
-                    delete this.cache[cacheId]
-                  }
-                }
-              })
-            }
-          }
-        })
-      }
-
-      // Check ship collision with the Asteroid
       if (body instanceof Ship) {
-        let ship = body
-        if (!this.cache['invisibility']) {
-          Object.entries(this.bodies).forEach(([_, body2]: [string, Body]) => {
-            if (body2 instanceof Asteroid) {
-              let asteroid = body2
-              if (body.collision(asteroid)) {
-                ship.hp--
-
-                this.observer!.emit('message', asteroidMessages[Math2.random(0, asteroidMessages.length - 1)])
-
-                // Ship will flicked when damaged
-                ship.isFlickering = true
-
-                // Remove flickering after a certain period of time
-                this.cache['invisibility'] = window.setTimeout(() => {
-                  ship.isFlickering = false
-                  window.clearTimeout(this.cache['invisibility'])
-                  delete this.cache['invisibility']
-                }, 3000)
-
-                ship.healthBar!.isVisible = true
-                let cacheId = 'ship'
-                if (this.cache[cacheId]) {
-                  window.clearTimeout(this.cache[cacheId])
-                }
-                this.cache[cacheId] = window.setTimeout(() => {
-                  ship.healthBar!.isVisible = false
-                }, this.showHealthBarDuration)
-
-                if (ship.hp < 0) {
-                  this.observer!.emit('message', 'game over')
-                  delete this.bodies[Number(id)]
-                  window.clearTimeout(this.cache[cacheId])
-                  delete this.cache[cacheId]
-                }
-              }
-            }
-
-            if (body2 instanceof Alien) {
-              let alien = body2
-              alien.eyeTheta = Math.atan2(body.y - alien.y, body.x - alien.x)
-              let weapon = alien.getWeapon()
-
-              // Check if the ship is hit by alien weapons
-              Object.entries(alien.getWeapon().ammos).forEach(([ammoId, ammo]: [string, Body]) => {
-                if (ammo.collision(ship)) {
-                  // Deduct hp
-                  ship.hp -= weapon.damage
-
-                  // Ship will flicked when damaged
-                  ship.isFlickering = true
-
-                  this.observer!.emit('message', alientAttackMessages[Math2.random(0, alientAttackMessages.length - 1)])
-
-                  // Remove flickering after a certain period of time
-                  this.cache['invisibility'] = window.setTimeout(() => {
-                    ship.isFlickering = false
-                    window.clearTimeout(this.cache['invisibility'])
-                    delete this.cache['invisibility']
-                  }, 3000)
-
-                  // Remove the weapon
-                  delete alien.getWeapon().ammos[Number(ammoId)]
-
-                  // Show the health bar temporarily when damaged
-                  ship.healthBar!.isVisible = true
-
-                  // Prevent the health bar from 'flickering' when multiple bullets hits the asteroid
-                  let cacheId = `alien:bullet:${ammoId}`
-                  if (this.cache[cacheId]) {
-                    window.clearTimeout(this.cache[cacheId])
-                  }
-                  this.cache[cacheId] = window.setTimeout(() => {
-                    ship.healthBar!.isVisible = false
-                  }, this.showHealthBarDuration)
-
-                  // Ship is destroyed completely when hp drops below 0
-                  // and is removed from the game
-                  if (ship.hp < 0) {
-                    this.observer!.emit('message', 'game over')
-                    delete this.bodies[Number(id)]
-                    window.clearTimeout(this.cache[cacheId])
-                    delete this.cache[cacheId]
-                  }
-                }
-              })
-            }
-          })
-        }
+        this._checkCollision(body, id)
       }
     })
     this.requestId = window.requestAnimationFrame(this.draw.bind(this))
@@ -264,16 +208,13 @@ class Game {
   }
   setBodies(...bodies: Body[]): Game {
     this.bodies = bodies.reduce((acc: { [id: number]: Body }, body: Body, i: number) => {
-      body.setObserver(this.observer!)
       acc[i] = body
       return acc
     }, {})
     return this
   }
-  setObserver(o: Observer): Game {
-    this.observer = o
+  setObserver(observer: Observer): Game {
+    this.observer = observer
     return this
   }
 }
-
-export default Game

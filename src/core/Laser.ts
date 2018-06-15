@@ -1,5 +1,5 @@
 import Body from "./Body";
-import { WeaponType } from "./Weapon";
+import { WeaponType } from "./weapon";
 
 class Laser extends Body {
   draw(ctx: CanvasRenderingContext2D) {
@@ -31,7 +31,7 @@ class Laser extends Body {
 }
 
 class LaserWeapon {
-  damage = 20;
+  damage = 0.5;
   type: WeaponType;
   ammos: { [id: number]: Laser };
   count: number;
@@ -48,9 +48,17 @@ class LaserWeapon {
     this.ammos = {}
     this.id = 0
   }
+
   reload(body: Body) {
     if (Object.keys(this.ammos).length < this.count) {
-      let newBullet = new Laser(body.x, body.y, body.theta, this.velocity, this.radius, 0, 9999)
+      let newBullet = new Laser()
+      newBullet.x = body.x
+      newBullet.y = body.y
+      newBullet.theta = body.theta
+      newBullet.velocity = this.velocity
+      newBullet.radius = this.radius
+      newBullet.friction = 0
+
       this.ammos[++this.id] = newBullet
       let id = this.id
       window.setTimeout(() => {

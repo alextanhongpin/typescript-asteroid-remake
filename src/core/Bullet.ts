@@ -1,5 +1,5 @@
-import Body from "./Body";
-import { WeaponType } from "./Weapon";
+import Body from "./body";
+import { WeaponType } from "./weapon";
 
 class Bullet extends Body {
   draw(ctx: CanvasRenderingContext2D) {
@@ -36,13 +36,17 @@ class BulletWeapon {
   }
   reload(body: Body) {
     if (Object.keys(this.ammos).length < this.count) {
-      let newBullet = new Bullet(body.x, body.y, body.observerTheta ? body.observerTheta : body.theta, this.velocity, this.radius, 0, 0)
-      // this.bullets.push(newBullet)
-      this.ammos[++this.id] = newBullet
-      let id = this.id
-      window.setTimeout(() => {
+      let b = new Bullet()
+      b.x = body.x
+      b.y = body.y
+      b.theta = body.observerTheta ? body.observerTheta : body.theta
+      b.velocity = this.velocity
+      b.radius = this.radius
+
+      this.ammos[++this.id] = b
+      window.setTimeout((id: number) => {
         delete this.ammos[id]
-      }, this.duration)
+      }, this.duration, this.id)
     }
   }
   empty() {
@@ -55,7 +59,9 @@ class BulletWeapon {
     Object.entries(this.ammos).forEach(([id, bullet]: [string, Bullet]) => {
       bullet.update()
 
-      // Additional logic to remove bullets that are out of bound
+      // Additional logic to remove bullets that are out of bound,
+      // the bullet class does not implement this, as different bullets
+      // might have different behaviour
       if (bullet.x > window.innerWidth ||
         bullet.x < 0 ||
         bullet.y > window.innerWidth ||

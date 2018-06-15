@@ -1,6 +1,6 @@
-import Body from "./Body";
-import Math2 from "../utils/Math2";
-import Particle from "./Particle";
+import Body from "./body";
+import Math2 from "../utils/math2";
+import Particle from "./particle";
 
 class Effect {
   particles: Particle[];
@@ -17,12 +17,13 @@ class Effect {
       let thetaY = Math.sin(theta)
       let spread = 25
 
-      let x = body.x + thetaX * spread
-      let y = body.y + thetaY * spread
-      let velocity = -0.5
-      let radius = 2
-      let friction = 0.95
-      return new Particle(x, y, theta, velocity, radius, friction, 0)
+      let particle = new Particle()
+      particle.x = body.x + thetaX * spread
+      particle.y = body.y + thetaY * spread
+      particle.velocity = -0.5
+      particle.radius = 2
+      particle.friction = 0.95
+      return particle
     })
   }
   draw(ctx: CanvasRenderingContext2D) {

@@ -1,4 +1,4 @@
-import Body from "./Body";
+import Body from "./body";
 
 export enum WeaponType {
   Bullet,
