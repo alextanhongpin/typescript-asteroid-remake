@@ -1,8 +1,9 @@
-import Game from './core/Game'
-import ShipFactory from './factory/ship'
-import AlienFactory from './factory/alien'
-import AsteroidFactory from './factory/asteroid'
-import Observer from './utils/observer'
+import Game from './core/game'
+import { flatten } from './core/drawable'
+import { Observer } from './utils/observer'
+import { AlienFactory } from './movable/alien'
+import { ShipFactory } from './movable/ship'
+import { AsteroidFactory } from './movable/asteroid'
 
 'use strict';
 
@@ -13,8 +14,8 @@ import Observer from './utils/observer'
   let InfoView = document.getElementById('info')
 
   let messageTimeout: number
-  let observer = new Observer()
-  observer.on('message', (msg: string) => {
+  let o = new Observer()
+  o.on('message', (msg: string) => {
     if (InfoView!.innerHTML !== '') {
       return
     }
@@ -31,14 +32,24 @@ import Observer from './utils/observer'
   canvas.width = width
   canvas.height = height
 
-  let ship = new ShipFactory().build(width, height)
-  let aliens = new AlienFactory().build(width, height, 2)
-  let asteroids = new AsteroidFactory().build(width, height, 10)
+
+  let alienFactory = new AlienFactory()
+  let shipFactory = new ShipFactory()
+  let asteroidFactory = new AsteroidFactory()
+
+  let ship = shipFactory.build(o, width, height)
+  let asteroids = Array(10).fill(null).map(() => {
+    return asteroidFactory.build(o, width, height)
+  })
+  let aliens = Array(2).fill(null).map(() => {
+    return alienFactory.build(o, width, height)
+  })
+
 
   let game = new Game(canvas)
   game
-    .setObserver(observer)
-    .setBodies(ship, ...aliens, ...asteroids)
+    .setObserver(o)
+    .setDrawables(...ship, ...flatten(asteroids), ...flatten(aliens))
     .setup()
     .start()
 })()

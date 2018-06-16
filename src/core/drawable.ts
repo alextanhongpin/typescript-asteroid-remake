@@ -1,5 +1,5 @@
 import genId from '../utils/id'
-import Observer from '../utils/observer'
+import { Observer } from '../utils/observer'
 
 export enum Presentable {
   Alien,
@@ -17,7 +17,13 @@ export enum Boundary {
   None
 }
 
-export abstract class Metadata {
+export function flatten(drawables: Drawable[][]): Drawable[] {
+  return drawables.reduce((acc: Drawable[], d: Drawable[]) => {
+    return acc.concat(d)
+  }, [])
+}
+
+export abstract class Drawable {
   id: number = genId();
   x: number = 0;
   y: number = 0;
@@ -29,17 +35,29 @@ export abstract class Metadata {
   isVisible: boolean = true;
   hp: number = 100;
   maxHp: number = 100;
-  // Composite pattern, since the views can be stacked/overlayed
-  metadatas: {[index:string]: Metadata} = {};
+  damage: number = 0;
   [key: string]: any;
 }
 
-function checkOutOfBounds(m: Metadata, boundX: number, boundY: number){
+function checkOutOfBounds(m: Drawable, boundX: number, boundY: number) {
   return m.x > boundX || m.x < 0 || m.y > boundY || m.y < 0
 }
 
+export function checkCollision(m1: Drawable, m2: Drawable): boolean {
+  let deltaX = Math.pow(m1.x - m2.x, 2)
+  let deltaY = Math.pow(m1.y - m2.y, 2)
+  let radius = m1.radius + m2.radius
+  return Math.sqrt(deltaX + deltaY) < radius
+}
+
+export function checkLaserCollision(m1: Drawable, m2: Drawable): boolean {
+  let deltaY = Math.tan(m1.theta) * (m2.x - m1.x)
+  let y2 = m1.y + deltaY
+  return Math.abs(m2.y - y2) < m2.radius
+}
+
 export class Engine {
-  update(m: Metadata, boundX: number, boundY: number, o: Observer) {
+  update(m: Drawable, boundX: number, boundY: number, o: Observer) {
     if (!m.velocity) return
     m.x += Math.cos(m.theta) * m.velocity
     m.y += Math.sin(m.theta) * m.velocity
@@ -61,10 +79,10 @@ export class Engine {
     m.observer && m.observer.emit(`update:${m.id}`, m)
   }
 
-  draw(ctx: CanvasRenderingContext2D, m: Metadata) {
+  draw(ctx: CanvasRenderingContext2D, m: Drawable) {
     switch (m.type) {
       case Presentable.Alien:
-        drawAlien(ctx, m.x, m.y)
+        drawAlien(ctx, m.x, m.y, m.alpha)
         break
       case Presentable.Eye:
         drawEye(ctx, m.x, m.y, m.theta)
@@ -85,11 +103,12 @@ export class Engine {
         break
       case Presentable.Laser:
         drawLaser(ctx, m.x, m.y, m.theta, m.radius)
+        break
     }
   }
 }
 
-function drawShip (ctx: CanvasRenderingContext2D, x: number, y: number, theta: number, radius: number, alpha: number) {
+function drawShip(ctx: CanvasRenderingContext2D, x: number, y: number, theta: number, radius: number, alpha: number) {
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(theta)
@@ -105,7 +124,7 @@ function drawShip (ctx: CanvasRenderingContext2D, x: number, y: number, theta: n
   ctx.restore()
 }
 
-function drawCircle (ctx: CanvasRenderingContext2D, x: number, y: number, theta: number, radius: number, fill: boolean) {
+function drawCircle(ctx: CanvasRenderingContext2D, x: number, y: number, theta: number, radius: number, fill: boolean) {
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(theta)
@@ -133,7 +152,7 @@ function drawEye(ctx: CanvasRenderingContext2D, x: number, y: number, theta: num
   ctx.restore()
 }
 
-function drawAlien (ctx: CanvasRenderingContext2D, x: number, y: number) {
+function drawAlien(ctx: CanvasRenderingContext2D, x: number, y: number, alpha: number) {
   ctx.save()
   ctx.translate(x, y)
 
@@ -142,20 +161,15 @@ function drawAlien (ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.moveTo(-15, -3)
   ctx.bezierCurveTo(-20, -15, 20, -15, 15, -3)
   ctx.strokeStyle = 'white'
+  ctx.globalAlpha = alpha
   ctx.stroke()
   ctx.closePath()
-
-  // // Tracking eye
-  // ctx.beginPath()
-  // ctx.arc(this.eyeX * Math.cos(this.eyeTheta), -5 + this.eyeY * Math.sin(this.eyeTheta), 2, 0, Math.PI * 2, false)
-  // ctx.fillStyle = 'white'
-  // ctx.fill()
-  // ctx.closePath()
 
   // Middle body
   ctx.beginPath()
   ctx.rect(-20, -3, 40, 3)
   ctx.strokeStyle = 'white'
+  ctx.globalAlpha = alpha
   ctx.stroke()
   ctx.closePath()
 
@@ -170,6 +184,7 @@ function drawAlien (ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.moveTo(-15, 5)
   ctx.lineTo(-18, 10)
   ctx.strokeStyle = 'white'
+  ctx.globalAlpha = alpha
   ctx.stroke()
   ctx.closePath()
   ctx.restore()

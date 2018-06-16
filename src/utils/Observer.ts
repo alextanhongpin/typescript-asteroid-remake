@@ -1,4 +1,4 @@
-class Observer {
+export class Observer {
   private events: { [id: string]: Function[] }
   constructor() {
     this.events = {}
@@ -21,4 +21,6 @@ class Observer {
   }
 }
 
-export default Observer
+export function makeObserver(): Observer {
+  return new Observer()
+}
