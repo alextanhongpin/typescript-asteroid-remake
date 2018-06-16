@@ -7,7 +7,6 @@ class Laser extends Body {
     ctx.translate(this.x, this.y)
     ctx.beginPath()
 
-
     let thetaX = Math.cos(this.theta)
     let thetaY = Math.sin(this.theta)
     ctx.moveTo(thetaX * this.radius, thetaY * this.radius)

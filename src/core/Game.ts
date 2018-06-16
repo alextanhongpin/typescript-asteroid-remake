@@ -6,6 +6,10 @@ import Alien from "../composite/alien"
 import { WeaponType, Weapon } from "./weapon";
 import Observer from "../utils/Observer";
 import Math2 from '../utils/math2'
+import  { Metadata, Engine } from './metadata'
+import AlienFactoryV2 from '../drawable/alien.v2'
+import ShipFactoryV2 from '../drawable/ship.v2'
+import AsteroidFactoryV2 from '../drawable/asteroid.v2'
 
 let alientAttackMessages = [
   'oopps, that must hurt real bad',
@@ -25,17 +29,18 @@ let shootAsteroidMessages = [
   'you rock'
 ]
 
-
 export default class Game {
-  private observer: Observer = new Observer();
+  observer: Observer;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private requestId: number = -1;
   private isSetup: boolean = false;
   private bodies: { [id: number]: Body } = {};
+  private metadatas: {[index:number]: Metadata} = {};
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
     this.ctx = this.canvas.getContext('2d')!
+    this.engine = new Engine()
   }
   setup(): Game {
     if (this.isSetup) {
@@ -46,7 +51,44 @@ export default class Game {
         this.pause()
       }
     })
+
+    let alienFactory = new AlienFactoryV2()
+    let shipFactory = new ShipFactoryV2()
+    let asteroidFactory = new AsteroidFactoryV2()
+
+    let metadatas = [
+      alienFactory.build(this.observer),
+      alienFactory.build(this.observer),
+      shipFactory.build(this.observer, window.innerWidth, window.innerHeight),
+      asteroidFactory.build(this.observer, window.innerWidth, window.innerHeight)
+    ].reduce((a: Metadata[], b: Metadata[]) => a.concat(b), [])
+    this.metadatas = metadatas.reduce((acc, m) => {
+      acc[m.id] = m
+      return acc
+    }, {})
+
+    console.log('metadatas', this.metadatas)
+    this.observer.on('bullet:add', (m: Metadata) => {
+      this.metadatas[m.id] = m
+    })
+    this.observer.on('bullet:delete', (m: Metadata) => {
+      delete this.metadatas[m.id]
+    })
+
+    this.observer.on('particles:add', (metas: Metadata[]) => {
+      metas.forEach(m => {
+        this.metadatas[m.id] = m
+      })
+    })
+
+    this.observer.on('particles:delete', (metas: Metadata[]) => {
+      metas.forEach(m => {
+        delete this.metadatas[m.id] 
+      })
+    })
+
     this.isSetup = true
+
     return this
   }
   pause(): Game {
@@ -61,6 +103,9 @@ export default class Game {
     window.cancelAnimationFrame(this.requestId)
     this.requestId = -1
     return this
+  }
+  restart() {
+    throw new Error('not implemented')
   }
   _shipWeaponAndAsteroidCollision(weapon: Weapon, asteroid: Asteroid, asteroidId: string) {
     // Check if the asteroid is hit by the ship's weapon
@@ -187,24 +232,29 @@ export default class Game {
     })
   }
   draw() {
+    let o = this.observer
     this.ctx.save()
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    if (Object.values(this.bodies).length === 1 && this.bodies[0] instanceof Ship) {
-      this.observer.emit('message', 'you saved the universe again! well done!')
-    }
-    let bodies = Object.entries(this.bodies)
-    bodies.forEach(([id, body]: [string, Body]) => {
-      body.draw(this.ctx)
-      body.update()
-      if (body instanceof Ship) {
-        this._checkCollision(body, id)
-      }
+    // if (Object.values(this.bodies).length === 1 && this.bodies[0] instanceof Ship) {
+    //   this.observer.emit('message', 'you saved the universe again! well done!')
+    // }
+    // let bodies = Object.entries(this.bodies)
+    // bodies.forEach(([id, body]: [string, Body]) => {
+    //   body.draw(this.ctx)
+    //   body.update()
+    //   if (body instanceof Ship) {
+    //     // this.metadatas[0].observer.emit('parent:update', Math.atan2(body.y -  this.metadatas[0].y, body.x -  this.metadatas[0].x))
+    //     this._checkCollision(body, id)
+    //   }
+    // })
+
+    Object.entries(this.metadatas).forEach(([id, m]: [string, Metadata]) => {
+      this.engine.draw(this.ctx, m)
+      this.engine.update(m, window.innerWidth, window.innerHeight, o)
     })
     this.requestId = window.requestAnimationFrame(this.draw.bind(this))
   }
-  restart() {
-    throw new Error('not implemented')
-  }
+
   setBodies(...bodies: Body[]): Game {
     this.bodies = bodies.reduce((acc: { [id: number]: Body }, body: Body, i: number) => {
       acc[i] = body

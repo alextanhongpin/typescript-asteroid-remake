@@ -9,18 +9,8 @@ export default class Ship implements Drawable {
   alphaState: boolean = false;
   alpha: number = 1;
   _updateShip() {
-    if (this.x > window.innerWidth) {
-      this.x = 0
-    }
-    if (this.x < 0) {
-      this.x = window.innerWidth
-    }
-    if (this.y > window.innerHeight) {
-      this.y = 0
-    }
-    if (this.y < 0) {
-      this.y = window.innerHeight
-    }
+    this.x = (this.x + window.innerWidth) % window.innerWidth
+    this.y = (this.y + window.innerHeight) % window.innerHeight
   }
   _drawShip(ctx: CanvasRenderingContext2D) {
     ctx.save()

@@ -37,9 +37,9 @@ import Observer from './utils/observer'
 
   let game = new Game(canvas)
   game
-    .setup()
     .setObserver(observer)
     .setBodies(ship, ...aliens, ...asteroids)
+    .setup()
     .start()
 })()
 
