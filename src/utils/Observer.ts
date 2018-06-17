@@ -1,18 +1,30 @@
-class Observer {
-  private events: { [id: string]: Function }
+export type ObserverEvents = {
+  [index: string]: string
+}
+
+export class Observer {
+  private events: { [id: string]: Function[] }
   constructor() {
     this.events = {}
   }
   on(event: string, fn: Function) {
     if (!this.events[event]) {
-      this.events[event] = fn
+      this.events[event] = []
     }
+    this.events[event].push(fn)
   }
   emit(event: string, ...args: any[]) {
+    if (this.events[event] && this.events[event].length > 0) {
+      this.events[event].forEach((fn: Function) => fn(...args))
+    }
+  }
+  off(event: string) {
     if (this.events[event]) {
-      this.events[event](...args)
+      delete this.events[event]
     }
   }
 }
 
-export default Observer
+export function makeObserver(): Observer {
+  return new Observer()
+}

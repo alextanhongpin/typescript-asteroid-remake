@@ -11,25 +11,80 @@ body {
   display: block;
   background: black;
   position: fixed;
-  /* width: 100vw; */
-  /* height: 100vh; */
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
 }
 
-#controls {
+#help {
   position: fixed; 
   top: 10px;
   right: 10px;
   color: white;
   z-index: 100;
 }
-#info {
+
+#message {
   position: fixed;
   top: 10px;
   left: 10px;
   color: white;
   z-index: 100;
+}
+
+.controls {
+  position: fixed;
+  z-index: 100;
+  color: white;
+
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  -khtml-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+}
+
+.controls--movement {
+  right: 10px;
+  bottom: 10px;
+}
+
+.controls--action {
+  left: 10px;
+  bottom: 10px;
+}
+
+.controls--action .control-button {
+  border-radius: 50%;
+}
+
+.top {
+  text-align: center;
+}
+
+.control-button {
+  border: 1px solid rgba(255, 255, 255, .6);
+  border-radius: 3px;
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+}
+
+.control-button:active,
+.control-button:hover {
+  background: rgba(255, 255, 255, .2);
+}
+
+#up, 
+#left, 
+#right,
+#shoot,
+#teleport,
+#weapon {
+  display: none;
 }
