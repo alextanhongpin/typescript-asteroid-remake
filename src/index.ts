@@ -22,10 +22,7 @@ import { AsteroidFactory } from './movable/asteroid'
   let o = new Observer()
 
   handleMessage(o)
-  if (isTouchDevice()) {
-    document.getElementById('help')!.style.display = 'none'
-    handleTouch(o)
-  }
+  isTouchDevice() && handleTouch(o)
 
   let ship = shipFactory.build(o, width, height)
   let asteroids = Array(10).fill(null).map(() => {
@@ -69,51 +66,52 @@ function handleTouch(o: Observer) {
     right: document.getElementById('right')!,
     shoot: document.getElementById('shoot')!,
     teleport: document.getElementById('teleport')!,
-    weapon: document.getElementById('weapon')!
+    weapon: document.getElementById('weapon')!,
+    help: document.getElementById('help')!
   }
   Object.values(View).forEach((el: HTMLElement) => {
     el.style.display = 'block'
   })
-  addTouchAndClickEventListener(View.up, () => {
+  View.help.style.display = 'none'
+
+  onTouch(View.up, () => {
     o.emit('TOUCH_UP')
   })
-  addTouchAndClickEventListener(View.left, () => {
+  onTouch(View.left, () => {
     o.emit('TOUCH_LEFT')
   })
-  addTouchAndClickEventListener(View.right, () => {
+  onTouch(View.right, () => {
     o.emit('TOUCH_RIGHT')
   })
-  addTouchAndClickEventListener(View.shoot, () => {
+  onTouch(View.shoot, () => {
     o.emit('TOUCH_SHOOT')
   })
-  addTouchAndClickEventListener(View.teleport, () => {
+  onTouch(View.teleport, () => {
     o.emit('TOUCH_TELEPORT')
   })
-  addTouchAndClickEventListener(View.weapon, () => {
+  onTouch(View.weapon, () => {
     o.emit('TOUCH_SWAP_WEAPON')
   })
 }
 
-function addTouchAndClickEventListener(element: HTMLElement, fn: Function) {
-  element.addEventListener('touchstart', (_evt: TouchEvent) => {
+function onTouch(element: HTMLElement, fn: Function) {
+  element.addEventListener('touchstart', (evt: TouchEvent) => {
+    evt.preventDefault()
     fn && fn()
   }, { passive: true })
-  // element.addEventListener('click', () => {
-  //   fn()
-  // }, false)
 }
 
-function isTouchDevice() {
-  var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ')
-  var mq = function (query: string) {
-    return window.matchMedia(query).matches;
+function isTouchDevice(): boolean {
+  let prefixes = ' -webkit- -moz- -o- -ms- '.split(' ')
+  let mq = function (query: string) {
+    return window.matchMedia(query).matches
   }
 
   if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
-    return true;
+    return true
   }
   // include the 'heartz' as a way to have a non matching MQ to help terminate the join
   // https://git.io/vznFH
-  var query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('')
+  let query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('')
   return mq(query)
 }
