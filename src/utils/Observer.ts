@@ -1,3 +1,7 @@
+export type ObserverEvents = {
+  [index: string]: string
+}
+
 export class Observer {
   private events: { [id: string]: Function[] }
   constructor() {

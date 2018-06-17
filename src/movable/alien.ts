@@ -1,6 +1,6 @@
 
-import { Drawable, Presentable } from '../core/drawable'
-import { Observer } from '../utils/observer'
+import { TimeoutDictionary, Drawable, Presentable, checkAngle } from '../core/drawable'
+import { Observer, ObserverEvents } from '../utils/observer'
 import Math2 from '../utils/math2'
 import { makeAlienBullet, Bullet } from './bullet'
 import { makeEye } from './eye'
@@ -9,82 +9,96 @@ import { makeParticles } from './effect'
 
 export class Alien extends Drawable {
   type: Presentable = Presentable.Alien;
-  particles: Drawable[];
-  private eyeTheta: number = 0;
-  private teleportTimeout: number;
-  private shootTimeout: number;
-  flickerTimeout: number;
-  alpha: number;
-  alphaState: boolean;
-  constructor(o: Observer, x: number, y: number, theta: number) {
+  private alpha: number;
+  private alphaState: boolean;
+  private boundX: number;
+  private boundY: number;
+  private events: ObserverEvents;
+  private eyeTheta: number;
+  private timeouts: TimeoutDictionary;
+  private particles: Drawable[];
+  constructor(o: Observer, x: number, y: number, theta: number, boundX: number, boundY: number) {
     super()
+    this.observer = o
     this.x = x
     this.y = y
     this.theta = theta
-    this.observer = o
-    this.particles = []
-    // This is the collision radius, and is needed
-    this.radius = 15
     this.velocity = 3
-    this.teleportTimeout = 0
-    this.shootTimeout = 0
-    this.flickerTimeout = 0
+
     this.alpha = 1
     this.alphaState = false
+    this.boundX = boundX
+    this.boundY = boundY
+    this.eyeTheta = 0
+    this.particles = []
+    this.radius = 15
+
+    this.timeouts = {}
+    this.events = {
+      TRACK_EYE: `eye:${this.id}`,
+      UPDATE: `update:${this.id}`,
+      DAMAGE: `damage:${this.id}`,
+      REMOVE: 'body:remove',
+      HEALTH: `health:${this.id}`,
+      ADD: 'body:add'
+    }
+
     this.setup()
   }
-
-  setup() {
+  private setup() {
+    let { DAMAGE, TRACK_EYE, UPDATE } = this.events
     let o = this.observer
-    this.teleportTimeout = window.setInterval(() => {
+
+    this.timeouts['teleport'] && window.clearTimeout(this.timeouts['teleport'])
+    this.timeouts['teleport'] = window.setInterval(() => {
       this.teleport()
-      this.shootTimeout = window.setTimeout(() => {
-        this.shoot()
-      }, 500)
-      if (this.shootTimeout) {
-        window.clearTimeout(this.shootTimeout)
-      }
-      this.shootTimeout = window.setTimeout(() => {
-        this.shoot()
-      }, 1500)
+      this.shootProgram(500)
+      this.shootProgram(1500)
     }, 3000)
 
-    o.on(`update:${this.id}`, () => {
+    o.on(UPDATE, () => {
       this.updateTeleport()
       this.updateFlicker()
     })
-
-    o.on(`eye:${this.id}`, (m: Drawable) => {
-      this.eyeTheta = Math2.angle(this.x, this.y, m.x, m.y)
+    o.on(TRACK_EYE, (m: Drawable) => {
+      this.eyeTheta = checkAngle(this, m)
     })
-
-    o.on(`damage:${this.id}`, (m: Drawable) => {
+    o.on(DAMAGE, (m: Drawable) => {
       // Remove bullet, but not laser
       if (m instanceof Bullet) {
-        o.emit('bullet:delete', m)
+        o.emit('body:remove', m)
       }
-      this.flicker()
+      this.flicker(1000)
       this.updateHp(m)
     })
   }
-  private unmount() {
+  private shootProgram(duration: number) {
+    this.timeouts['shoot'] && window.clearTimeout(this.timeouts['shoot'])
+    this.timeouts['shoot'] = window.setTimeout(() => {
+      this.shoot()
+    }, duration)
+  }
+  private destroy() {
+    let { DAMAGE, REMOVE } = this.events
     let o = this.observer
-    o.emit('body:remove', this.id)
-    o.emit(`particles:delete`, this.particles)
-    o.off(`damage:${this.id}`)
 
-    window.clearTimeout(this.teleportTimeout)
-    window.clearTimeout(this.shootTimeout)
+    o.emit(REMOVE, this, ...this.particles)
+    o.off(DAMAGE)
+
+    Object.keys(this.timeouts)
+      .forEach(k => window.clearTimeout(this.timeouts[k]))
     this.particles = []
   }
   private updateTeleport() {
-    let o = this.observer
     if (!this.particles.length) {
       return
     }
+    let { REMOVE } = this.events
+    let o = this.observer
+
     this.particles.forEach(p => {
       if (p.radius <= 0) {
-        o.emit(`particles:delete`, this.particles)
+        o.emit(REMOVE, ...this.particles)
         this.particles = []
       } else {
         p.radius -= 0.1
@@ -93,33 +107,36 @@ export class Alien extends Drawable {
     })
   }
   private updateHp(m: Drawable) {
-    let o = this.observer
+    let { HEALTH } = this.events
+
     this.hp -= m.damage
     this.hp = Math.max(0, this.hp)
-    o.emit(`health:${this.id}`, this.hp)
+
+    this.observer.emit(HEALTH, this.hp)
+
     if (!this.hp) {
-      this.unmount()
+      this.destroy()
     }
   }
   private shoot() {
-    this.observer.emit('bullet:add', makeAlienBullet(this.x, this.y, this.eyeTheta))
+    let { ADD } = this.events
+    this.observer.emit(ADD, makeAlienBullet(this.x, this.y, this.eyeTheta))
   }
   private teleport() {
+    let { ADD } = this.events
     if (!this.particles.length) {
       this.particles = makeParticles(12, this.x, this.y)
-      this.observer.emit('particles:add', this.particles)
-      this.x = Math2.random(0, window.innerWidth)
-      this.y = Math2.random(0, window.innerHeight)
+      this.observer.emit(ADD, ...this.particles)
+      this.x = Math2.random(0, this.boundX)
+      this.y = Math2.random(0, this.boundY)
     }
   }
-  private flicker() {
+  private flicker(duration: number) {
     this.isFlickering = true
-    if (this.flickerTimeout) {
-      window.clearTimeout(this.flickerTimeout)
-    }
-    this.flickerTimeout = window.setTimeout(() => {
+    this.timeouts['flicker'] && window.clearTimeout(this.timeouts['flicker'])
+    this.timeouts['flicker'] = window.setTimeout(() => {
       this.isFlickering = false
-    }, 1000)
+    }, duration)
   }
   private updateFlicker() {
     if (this.isFlickering) {
@@ -147,7 +164,7 @@ export class AlienFactory {
     let x = Math2.random(0, boundX)
     let y = Math2.random(0, boundY)
     let theta = Math2.random(0, Math.PI * 2)
-    return new Alien(o, x, y, theta)
+    return new Alien(o, x, y, theta, boundX, boundY)
   }
   build(o: Observer, boundX: number, boundY: number): Drawable[] {
     let alien = this.makeAlien(o, boundX, boundY)

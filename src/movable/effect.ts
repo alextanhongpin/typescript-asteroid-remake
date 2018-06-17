@@ -16,9 +16,9 @@ export class Particle extends Drawable {
 }
 
 export function makeParticles(count: number, posX: number, posY: number) {
-  let degree = 360 / count
+  let radian = 2 * Math.PI / count
   return Array(count).fill(null).map((_, i) => {
-    let theta = Math2.degreeToTheta(i * degree)
+    let theta = i * radian
     let spread = 20
     let x = posX + spread * Math.cos(theta)
     let y = posY + spread * Math.sin(theta)
@@ -26,7 +26,6 @@ export function makeParticles(count: number, posX: number, posY: number) {
     return new Particle(x, y, theta, velocity)
   })
 }
-
 
 export class Spark extends Drawable {
   type: Presentable = Presentable.Circle;
@@ -43,12 +42,12 @@ export class Spark extends Drawable {
 }
 
 export function makeSparks(count: number, posX: number, posY: number, startTheta: number) {
-  let degree = 180 / count
+  let degree = Math.PI / count
   let spread = Math2.random(5, 10)
   return Array(count).fill(null).map((_, i) => {
-    let theta = Math2.degreeToTheta(i * degree - 90) + startTheta
-    let x = posX + Math.cos(theta) * spread
-    let y = posY + Math.sin(theta) * spread
+    let theta = startTheta + (i * degree - Math.PI / 2)
+    let x = posX + spread * Math.cos(theta)
+    let y = posY + spread * Math.sin(theta)
     let velocity = 0.5
     return new Particle(x, y, theta, velocity)
   })

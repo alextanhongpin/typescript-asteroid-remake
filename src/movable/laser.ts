@@ -10,14 +10,15 @@ export class Laser extends Drawable {
     this.y = y
     this.theta = theta
     this.radius = radius
-    this.observer = o
-    this.observer.on(`update:${parentId}`, (m: Drawable) => {
+    this.damage = 1
+
+    let UPDATE = `update:${parentId}`
+
+    o.on(UPDATE, (m: Drawable) => {
       this.x = m.x
       this.y = m.y
       this.theta = m.theta
     })
-
-    this.damage = 1
   }
 }
 

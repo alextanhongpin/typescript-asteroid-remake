@@ -15,11 +15,13 @@ export class Bullet extends Drawable {
 }
 
 export class AlienBullet extends Bullet { }
+
 export function makeAlienBullet(x: number, y: number, theta: number, radius = 5): Drawable {
   return new AlienBullet(x, y, theta, radius)
 }
 
 export class ShipBullet extends Bullet { }
+
 export function makeShipBullet(x: number, y: number, theta: number, radius = 5): Drawable {
   return new ShipBullet(x, y, theta, radius)
 }

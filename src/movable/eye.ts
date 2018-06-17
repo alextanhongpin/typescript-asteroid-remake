@@ -1,29 +1,38 @@
-import { Observer } from '../utils/observer'
-import { Drawable, Presentable } from '../core/drawable'
-import Math2 from '../utils/math2'
+import { Observer, ObserverEvents } from '../utils/observer'
+import { Drawable, Presentable, checkAngle } from '../core/drawable'
 
 export class Eye extends Drawable {
   type: Presentable = Presentable.Eye;
+  private events: ObserverEvents;
   constructor(o: Observer, private parentId: number) {
     super()
     this.observer = o
     this.parentId = parentId
+
+    this.events = {
+      UPDATE: `update:${this.parentId}`,
+      EYE: `eye:${this.parentId}`,
+      HEALTH: `health:${this.parentId}`,
+      REMOVE: 'body:remove'
+    }
+
     this.setup()
   }
-  setup() {
+  private setup() {
+    let { UPDATE, EYE, HEALTH, REMOVE } = this.events
     let o = this.observer
-    o.on(`update:${this.parentId}`, (m: Drawable) => {
+
+    o.on(UPDATE, (m: Drawable) => {
       this.x = m.x
       this.y = m.y
       this.velocity = m.velocity
     })
-    o.on(`eye:${this.parentId}`, (m: Drawable) => {
-      this.theta = Math2.angle(this.x, this.y, m.x, m.y)
+    o.on(EYE, (m: Drawable) => {
+      this.theta = checkAngle(this, m)
     })
-
-    o.on(`health:${this.parentId}`, (hp: number) => {
+    o.on(HEALTH, (hp: number) => {
       if (!hp) {
-        o.emit('body:remove', this.id)
+        o.emit(REMOVE, this)
       }
     })
   }

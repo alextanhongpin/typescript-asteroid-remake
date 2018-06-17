@@ -1,6 +1,6 @@
 
-import { Drawable, Presentable } from '../core/drawable'
-import { Observer } from '../utils/observer'
+import { Drawable, Presentable, checkAngle } from '../core/drawable'
+import { Observer, ObserverEvents } from '../utils/observer'
 import Math2 from '../utils/math2'
 import { makeSparks } from './effect'
 import { Bullet } from './bullet'
@@ -8,7 +8,8 @@ import { makeHealthBar } from './healthbar'
 
 export class Asteroid extends Drawable {
   type: Presentable = Presentable.Asteroid;
-  particles: Drawable[] = [];
+  private particles: Drawable[] = [];
+  private events: ObserverEvents;
   constructor(o: Observer, x: number, y: number, theta: number, velocity: number, radius: number, hp: number) {
     super()
     this.observer = o
@@ -18,49 +19,69 @@ export class Asteroid extends Drawable {
     this.velocity = velocity
     this.radius = radius
     this.hp = hp
-    this.damage = radius / 2
+    this.damage = Math.floor(radius / 2)
+
+    this.events = {
+      UPDATE: `update:${this.id}`,
+      DAMAGE: `damage:${this.id}`,
+      REMOVE: 'body:remove',
+      ADD: 'body:add',
+      HEALTH: `health:${this.id}`
+    }
+
     this.setup()
   }
+  private setup() {
+    let { UPDATE, DAMAGE, REMOVE } = this.events
+    let o = this.observer
 
-  setup() {
-    this.observer.on(`update:${this.id}`, () => {
-      if (!this.particles.length) {
-        return
-      }
-      this.particles.forEach(p => {
-        if (p.radius <= 0) {
-          this.observer.emit(`particles:delete`, this.particles)
-          this.particles = []
-        } else {
-          p.radius -= 0.1
-          p.radius = Math.max(0, p.radius)
-        }
-      })
+    o.on(UPDATE, () => {
+      this.updateParticles()
     })
-    this.observer.on(`damage:${this.id}`, (m: Drawable) => {
-      // Remove bullet, but not laser
+    o.on(DAMAGE, (m: Drawable) => {
       if (m instanceof Bullet) {
-        this.observer.emit('bullet:delete', m)
-        this.collisionSpark(this.x, this.y, m.x, m.y)
+        o.emit(REMOVE, m)
+        this.collisionSpark(m)
       }
       this.updateHp(m)
     })
   }
+  private updateParticles() {
+    let { REMOVE } = this.events
+
+    if (!this.particles.length) {
+      return
+    }
+    this.particles.forEach(p => {
+      if (p.radius <= 0) {
+        this.observer.emit(REMOVE, ...this.particles)
+        this.particles = []
+      } else {
+        p.radius -= 0.1
+        p.radius = Math.max(0, p.radius)
+      }
+    })
+  }
   private updateHp(m: Drawable) {
+    let { HEALTH, DAMAGE, REMOVE } = this.events
     let o = this.observer
+
     this.hp -= m.damage
     this.hp = Math.max(0, this.hp)
-    o.emit(`health:${this.id}`, this.hp)
+
+    o.emit(HEALTH, this.hp)
+
     if (!this.hp) {
-      o.emit('body:remove', this.id)
-      o.emit(`particles:delete`, this.particles)
-      o.off(`damage:${this.id}`)
+      o.emit(REMOVE, this, ...this.particles)
+      o.off(DAMAGE)
     }
   }
-  private collisionSpark(x1: number, y1: number, x2: number, y2: number) {
+  private collisionSpark(m: Drawable) {
+    let { ADD } = this.events
+
     if (!this.particles.length) {
-      this.particles = makeSparks(6, x2, y2, Math2.angle(x1, y1, x2, y2))
-      this.observer.emit('particles:add', this.particles)
+      this.particles = makeSparks(6, m.x, m.y, checkAngle(this, m))
+      this.observer.emit(ADD, ...this.particles)
     }
   }
 }

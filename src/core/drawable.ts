@@ -4,23 +4,38 @@ import { Observer } from '../utils/observer'
 export enum Presentable {
   Alien,
   Asteroid,
-  Eye,
-  Ship,
-  HealthBar,
   Circle,
-  Laser
+  Eye,
+  HealthBar,
+  Laser,
+  Ship
 }
 
 export enum Boundary {
-  Repeat,
   Bounded,
-  None
+  None,
+  Repeat
+}
+
+export type DrawableDictionary = {
+  [index: number]: Drawable
+}
+
+export type TimeoutDictionary = {
+  [index: string]: number
 }
 
 export function flatten(drawables: Drawable[][]): Drawable[] {
   return drawables.reduce((acc: Drawable[], d: Drawable[]) => {
     return acc.concat(d)
   }, [])
+}
+
+export function reduce(drawables: Drawable[]): DrawableDictionary {
+  return drawables.reduce((acc: DrawableDictionary, m: Drawable) => {
+    acc[m.id] = m
+    return acc
+  }, {})
 }
 
 export abstract class Drawable {
@@ -39,8 +54,12 @@ export abstract class Drawable {
   [key: string]: any;
 }
 
-function checkOutOfBounds(m: Drawable, boundX: number, boundY: number) {
+export function checkOutOfBounds(m: Drawable, boundX: number, boundY: number) {
   return m.x > boundX || m.x < 0 || m.y > boundY || m.y < 0
+}
+
+export function checkAngle(m1: Drawable, m2: Drawable) {
+  return Math.atan2(m2.y - m1.y, m2.x - m1.x)
 }
 
 export function checkCollision(m1: Drawable, m2: Drawable): boolean {
@@ -71,12 +90,12 @@ export class Engine {
         break
       case Boundary.Bounded:
         if (checkOutOfBounds(m, boundX, boundY)) {
-          o.emit('bullet:delete', m)
-          o.emit(`bullet:delete:${m.id}`, m)
+          o.emit('body:remove', m)
+          o.emit(`body:remove:${m.id}`, m)
         }
         break
     }
-    m.observer && m.observer.emit(`update:${m.id}`, m)
+    o.emit(`update:${m.id}`, m)
   }
 
   draw(ctx: CanvasRenderingContext2D, m: Drawable) {
@@ -104,6 +123,8 @@ export class Engine {
       case Presentable.Laser:
         drawLaser(ctx, m.x, m.y, m.theta, m.radius)
         break
+      default:
+        throw new Error(`drawError: ${m.type} is not defined`)
     }
   }
 }
@@ -165,7 +186,7 @@ function drawAlien(ctx: CanvasRenderingContext2D, x: number, y: number, alpha: n
   ctx.stroke()
   ctx.closePath()
 
-  // Middle body
+  // Body
   ctx.beginPath()
   ctx.rect(-20, -3, 40, 3)
   ctx.strokeStyle = 'white'
@@ -199,21 +220,22 @@ function drawHealthBar(ctx: CanvasRenderingContext2D, x: number, y: number, isVi
   let spacing = 1
   let padding = spacing * 2
   let hpRatio = hp / maxHp
-
   ctx.save()
   ctx.translate(x, y)
+
+  // Border
   ctx.beginPath()
   ctx.rect(0, 0, width, height)
   ctx.strokeStyle = 'white'
   ctx.stroke()
   ctx.closePath()
 
+  // Health bar
   ctx.beginPath()
   ctx.rect(spacing, spacing, Math.max(0, hpRatio * (width - padding)), height - padding)
   ctx.fillStyle = _healthColor(hpRatio)
   ctx.fill()
   ctx.closePath()
-
   ctx.restore()
 }
 
@@ -228,16 +250,22 @@ function _healthColor(hpRatio: number): string {
 }
 
 function drawLaser(ctx: CanvasRenderingContext2D, x: number, y: number, theta: number, radius: number) {
+  let thetaX = Math.cos(theta)
+  let thetaY = Math.sin(theta)
+
   ctx.save()
   ctx.translate(x, y)
   ctx.beginPath()
-
-  let thetaX = Math.cos(theta)
-  let thetaY = Math.sin(theta)
   ctx.moveTo(thetaX * radius, thetaY * radius)
   ctx.lineTo(thetaX * window.innerWidth, thetaY * window.innerWidth)
   ctx.lineWidth = 3
+  ctx.strokeStyle = _rainbowGradient(ctx)
+  ctx.stroke()
+  ctx.closePath()
+  ctx.restore()
+}
 
+function _rainbowGradient(ctx: CanvasRenderingContext2D): CanvasGradient {
   let gradient = ctx.createLinearGradient(10, 0, 500, 0)
   gradient.addColorStop(0, 'red')
   gradient.addColorStop(1 / 6, 'orange')
@@ -246,9 +274,5 @@ function drawLaser(ctx: CanvasRenderingContext2D, x: number, y: number, theta: n
   gradient.addColorStop(4 / 6, 'blue')
   gradient.addColorStop(5 / 6, 'indigo')
   gradient.addColorStop(1, 'violet')
-  ctx.strokeStyle = gradient
-  ctx.stroke()
-
-  ctx.closePath()
-  ctx.restore()
+  return gradient
 }
