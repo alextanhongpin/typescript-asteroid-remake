@@ -1,6 +1,7 @@
 import Game from './core/game'
-import { flatten } from './core/drawable'
-import { Observer } from './utils/observer'
+import { repeat } from './core/drawable'
+import { Observer, ObserverEvents } from './utils/observer'
+import { isTouchDevice, onTouch } from './utils/touch'
 import { AlienFactory } from './movable/alien'
 import { ShipFactory } from './movable/ship'
 import { AsteroidFactory } from './movable/asteroid'
@@ -25,17 +26,13 @@ import { AsteroidFactory } from './movable/asteroid'
   isTouchDevice() && handleTouch(o)
 
   let ship = shipFactory.build(o, width, height)
-  let asteroids = Array(10).fill(null).map(() => {
-    return asteroidFactory.build(o, width, height)
-  })
-  let aliens = Array(2).fill(null).map(() => {
-    return alienFactory.build(o, width, height)
-  })
+  let asteroids = repeat(10, () => asteroidFactory.build(o, width, height))
+  let aliens = repeat(2, () => alienFactory.build(o, width, height))
 
   let game = new Game(canvas)
   game
     .setObserver(o)
-    .setDrawables(...ship, ...flatten(asteroids), ...flatten(aliens))
+    .setDrawables(...ship, ...asteroids, ...aliens)
     .setup()
     .start()
 })()
@@ -69,49 +66,23 @@ function handleTouch(o: Observer) {
     weapon: document.getElementById('weapon')!,
     help: document.getElementById('help')!
   }
+  let Events: ObserverEvents = {
+    TOUCH_UP: 'touch:up',
+    TOUCH_LEFT: 'touch:left',
+    TOUCH_RIGHT: 'touch:right',
+    TOUCH_SHOOT: 'touch:shoot',
+    TOUCH_SWAP_WEAPON: 'touch:swap',
+    TOUCH_TELEPORT: 'touch:teleport'
+  }
   Object.values(View).forEach((el: HTMLElement) => {
     el.style.display = 'block'
   })
   View.help.style.display = 'none'
 
-  onTouch(View.up, () => {
-    o.emit('TOUCH_UP')
-  })
-  onTouch(View.left, () => {
-    o.emit('TOUCH_LEFT')
-  })
-  onTouch(View.right, () => {
-    o.emit('TOUCH_RIGHT')
-  })
-  onTouch(View.shoot, () => {
-    o.emit('TOUCH_SHOOT')
-  })
-  onTouch(View.teleport, () => {
-    o.emit('TOUCH_TELEPORT')
-  })
-  onTouch(View.weapon, () => {
-    o.emit('TOUCH_SWAP_WEAPON')
-  })
-}
-
-function onTouch(element: HTMLElement, fn: Function) {
-  element.addEventListener('touchstart', (evt: TouchEvent) => {
-    evt.preventDefault()
-    fn && fn()
-  }, { passive: true })
-}
-
-function isTouchDevice(): boolean {
-  let prefixes = ' -webkit- -moz- -o- -ms- '.split(' ')
-  let mq = function (query: string) {
-    return window.matchMedia(query).matches
-  }
-
-  if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
-    return true
-  }
-  // include the 'heartz' as a way to have a non matching MQ to help terminate the join
-  // https://git.io/vznFH
-  let query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('')
-  return mq(query)
+  onTouch(View.up, () => o.emit(Events.TOUCH_UP))
+  onTouch(View.left, () => o.emit(Events.TOUCH_LEFT))
+  onTouch(View.right, () => o.emit(Events.TOUCH_RIGHT))
+  onTouch(View.shoot, () => o.emit(Events.TOUCH_SHOOT))
+  onTouch(View.teleport, () => o.emit(Events.TOUCH_TELEPORT))
+  onTouch(View.weapon, () => o.emit(Events.TOUCH_SWAP_WEAPON))
 }

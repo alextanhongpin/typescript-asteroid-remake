@@ -56,6 +56,12 @@ export class Ship extends Drawable {
       REMOVE: 'body:remove',
       ADD: 'body:add',
       MESSAGE: 'message',
+      TOUCH_UP: 'touch:up',
+      TOUCH_LEFT: 'touch:left',
+      TOUCH_RIGHT: 'touch:right',
+      TOUCH_SHOOT: 'touch:shoot',
+      TOUCH_SWAP_WEAPON: 'touch:swap',
+      TOUCH_TELEPORT: 'touch:teleport'
     }
 
     this.setup()
@@ -70,7 +76,7 @@ export class Ship extends Drawable {
     evt.keyCode === KeyCode.Enter && this.switchWeapons()
   }
   private setup() {
-    let { UPDATE, DAMAGE, REMOVE } = this.events
+    let { UPDATE, DAMAGE, REMOVE, TOUCH_UP, TOUCH_LEFT, TOUCH_RIGHT, TOUCH_SHOOT, TOUCH_SWAP_WEAPON, TOUCH_TELEPORT } = this.events
     let o = this.observer
 
     this.clickedHandler = this.bindEvents.bind(this)
@@ -93,24 +99,12 @@ export class Ship extends Drawable {
       this.updateHp(m)
     })
 
-    o.on('TOUCH_UP', () => {
-      this.accelerate()
-    })
-    o.on('TOUCH_LEFT', () => {
-      this.rotateLeft()
-    })
-    o.on('TOUCH_RIGHT', () => {
-      this.rotateRight()
-    })
-    o.on('TOUCH_TELEPORT', () => {
-      this.teleport()
-    })
-    o.on('TOUCH_SHOOT', () => {
-      this.shoot()
-    })
-    o.on('TOUCH_SWAP_WEAPON', () => {
-      this.switchWeapons()
-    })
+    o.on(TOUCH_UP, () => this.accelerate())
+    o.on(TOUCH_LEFT, () => this.rotateLeft())
+    o.on(TOUCH_RIGHT, () => this.rotateRight())
+    o.on(TOUCH_TELEPORT, () => this.teleport())
+    o.on(TOUCH_SHOOT, () => this.shoot())
+    o.on(TOUCH_SWAP_WEAPON, () => this.switchWeapons())
   }
   private enterInvisiblityMode(duration: number) {
     this.invisibilityMode = true

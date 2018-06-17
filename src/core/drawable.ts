@@ -38,6 +38,13 @@ export function reduce(drawables: Drawable[]): DrawableDictionary {
   }, {})
 }
 
+export function repeat(count: number, factory: () => Drawable[]): Drawable[] {
+  let drawables = Array(count).fill(0).map(_ => {
+    return factory()
+  })
+  return flatten(drawables)
+}
+
 export abstract class Drawable {
   id: number = genId();
   x: number = 0;
@@ -91,7 +98,6 @@ export class Engine {
       case Boundary.Bounded:
         if (checkOutOfBounds(m, boundX, boundY)) {
           o.emit('body:remove', m)
-          o.emit(`body:remove:${m.id}`, m)
         }
         break
     }
