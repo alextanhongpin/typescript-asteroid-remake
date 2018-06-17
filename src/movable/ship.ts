@@ -25,13 +25,17 @@ export class Ship extends Drawable {
   private timeouts: TimeoutDictionary;
   private events: ObserverEvents;
   private rotation: number;
+  private minVelocity: number;
+  private maxVelocity: number;
   constructor(o: Observer, x: number, y: number, private boundX: number, private boundY: number) {
     super()
     this.observer = o
     this.x = x
     this.y = y
     this.friction = 0.95
-    this.velocity = 5
+    this.minVelocity = 1
+    this.maxVelocity = 8
+    this.velocity = this.minVelocity
     this.theta = 0
     this.radius = 15
 
@@ -58,7 +62,7 @@ export class Ship extends Drawable {
   }
   private bindEvents(evt: KeyboardEvent) {
     // Switch statement only limits to one keydown at a time, and can't execute combos
-    evt.keyCode === KeyCode.Up && this.moveForward()
+    evt.keyCode === KeyCode.Up && this.accelerate()
     evt.keyCode === KeyCode.Left && this.rotateLeft()
     evt.keyCode === KeyCode.Right && this.rotateRight()
     evt.keyCode === KeyCode.Shift && this.teleport()
@@ -75,6 +79,9 @@ export class Ship extends Drawable {
     o.on(UPDATE, () => {
       this.updateTeleport()
       this.updateFlicker()
+      if (this.velocity < this.minVelocity) {
+        this.velocity = Math.max(this.minVelocity, this.velocity)
+      }
     })
     o.on(DAMAGE, (m: Drawable) => {
       if (m instanceof Bullet) {
@@ -84,6 +91,25 @@ export class Ship extends Drawable {
       this.enterInvisiblityMode(1000)
       this.flicker(1000)
       this.updateHp(m)
+    })
+
+    o.on('TOUCH_UP', () => {
+      this.accelerate()
+    })
+    o.on('TOUCH_LEFT', () => {
+      this.rotateLeft()
+    })
+    o.on('TOUCH_RIGHT', () => {
+      this.rotateRight()
+    })
+    o.on('TOUCH_TELEPORT', () => {
+      this.teleport()
+    })
+    o.on('TOUCH_SHOOT', () => {
+      this.shoot()
+    })
+    o.on('TOUCH_SWAP_WEAPON', () => {
+      this.switchWeapons()
     })
   }
   private enterInvisiblityMode(duration: number) {
@@ -144,8 +170,8 @@ export class Ship extends Drawable {
     this.weapons++
     this.weapons = this.weapons % 2
   }
-  private moveForward() {
-    this.velocity = 5
+  private accelerate() {
+    this.velocity = this.maxVelocity
   }
   private rotateLeft() {
     this.theta -= this.rotation

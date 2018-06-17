@@ -5,13 +5,31 @@
 <head>
   <title>asteroid :: remake</title>
   <link rel="stylesheet" href="./index.css">
+  <meta name="viewport" content="width=device-width,user-scalable=no">
 </head>
 
 <body>
 
-  <div id="info"></div>
+  <div id="message"></div>
+  <!-- <div id="menu"></div> -->
 
-  <div id="controls">
+  <div class="controls controls--movement">
+    <div class="top">
+      <span id="up" class="control-button">&uarr;</span>
+    </div>
+    <div class="bottom">
+      <span id="left" class="control-button">&larr;</span>
+      <span id="right" class="control-button">&rarr;</span>
+    </div>
+  </div>
+
+  <div class="controls controls--action">
+    <div id="shoot" class="control-button">Atk</div>
+    <div id="teleport" class="control-button">Warp</div>
+    <div id="weapon" class="control-button">Swap</div>
+  </div>
+
+  <div id="help">
     <p>space - shoot</p>
     <p>shift - teleport</p>
     <p>enter - switch weapons</p>
@@ -19,7 +37,7 @@
     <p>&larr; &uarr; &rarr; &darr; - left, top, right, bottom</p>
   </div>
   <canvas id="canvas"></canvas>
-  <script src="./scripts/require.min.js" data-main="../dist/index.js"></script>
+  <script src="./scripts/require.min.js " data-main="../dist/index.js"></script>
 </body>
 
 </html>
