@@ -1,4 +1,4 @@
-import { Drawable, Presentable, Boundary } from '../core/drawable'
+import { Drawable, Presentable, Boundary } from 'core/drawable'
 
 export class Bullet extends Drawable {
   type: Presentable = Presentable.Circle;

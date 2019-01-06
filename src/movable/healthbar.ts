@@ -1,5 +1,5 @@
-import { Observer, ObserverEvents } from '../utils/observer'
-import { Drawable, Presentable } from '../core/drawable'
+import { Observer, ObserverEvents } from 'utils/observer'
+import { Drawable, Presentable } from 'core/drawable'
 
 export class HealthBar extends Drawable {
   type: Presentable = Presentable.HealthBar;

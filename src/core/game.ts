@@ -1,12 +1,12 @@
-import { DrawableDictionary, Drawable, Engine, checkCollision, checkLaserCollision, reduce } from './drawable'
-import { Alien } from '../movable/alien'
-import { AlienBullet, ShipBullet } from '../movable/bullet'
-import { Asteroid } from '../movable/asteroid'
-import { Laser } from '../movable/laser'
-import { Ship } from '../movable/ship'
-import KeyCode from '../utils/keycode'
-import Math2 from '../utils/math2'
-import { Observer, ObserverEvents } from '../utils/Observer'
+import { DrawableDictionary, Drawable, Engine, checkCollision, checkLaserCollision, reduce } from 'core/drawable'
+import { Alien } from 'movable/alien'
+import { AlienBullet, ShipBullet } from 'movable/bullet'
+import { Asteroid } from 'movable/asteroid'
+import { Laser } from 'movable/laser'
+import { Ship } from 'movable/ship'
+import KeyCode from 'utils/keycode'
+import Math2 from 'utils/math2'
+import { Observer, ObserverEvents } from 'utils/Observer'
 
 let messages = {
   alienAttack: [

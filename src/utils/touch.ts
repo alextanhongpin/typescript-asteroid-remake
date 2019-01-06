@@ -10,7 +10,6 @@ export function isTouchDevice(): boolean {
   let mq = function (query: string) {
     return window.matchMedia(query).matches
   }
-
   if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
     return true
   }

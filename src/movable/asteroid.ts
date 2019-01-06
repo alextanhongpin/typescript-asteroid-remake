@@ -1,7 +1,7 @@
 
-import { Drawable, Presentable, checkAngle } from '../core/drawable'
-import { Observer, ObserverEvents } from '../utils/observer'
-import Math2 from '../utils/math2'
+import { Drawable, Presentable, checkAngle } from 'core/drawable'
+import { Observer, ObserverEvents } from 'utils/observer'
+import Math2 from 'utils/math2'
 import { makeSparks } from './effect'
 import { Bullet } from './bullet'
 import { makeHealthBar } from './healthbar'

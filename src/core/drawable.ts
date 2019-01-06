@@ -1,5 +1,7 @@
-import genId from '../utils/id'
-import { Observer } from '../utils/observer'
+import GenId from 'utils/id'
+import { Observer } from 'utils/observer'
+
+const genId = GenId()
 
 export enum Presentable {
   Alien,

@@ -1,5 +1,5 @@
-import { Observer, ObserverEvents } from '../utils/observer'
-import { Drawable, Presentable, checkAngle } from '../core/drawable'
+import { Observer, ObserverEvents } from 'utils/observer'
+import { Drawable, Presentable, checkAngle } from 'core/drawable'
 
 export class Eye extends Drawable {
   type: Presentable = Presentable.Eye;

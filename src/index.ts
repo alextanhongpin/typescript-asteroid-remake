@@ -1,10 +1,10 @@
-import Game from './core/game'
-import { repeat } from './core/drawable'
-import { Observer, ObserverEvents } from './utils/observer'
-import { isTouchDevice, onTouch } from './utils/touch'
-import { AlienFactory } from './movable/alien'
-import { ShipFactory } from './movable/ship'
-import { AsteroidFactory } from './movable/asteroid'
+import Game from 'core/game'
+import { repeat } from 'core/drawable'
+import { Observer, ObserverEvents } from 'utils/observer'
+import { isTouchDevice, onTouch } from 'utils/touch'
+import { AlienFactory } from 'movable/alien'
+import { ShipFactory } from 'movable/ship'
+import { AsteroidFactory } from 'movable/asteroid'
 
 'use strict';
 

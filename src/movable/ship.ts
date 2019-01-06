@@ -1,12 +1,11 @@
-
-import { Observer, ObserverEvents } from '../utils/observer'
-import Math2 from '../utils/math2'
-import KeyCode from '../utils/keycode'
-import { Drawable, Presentable, TimeoutDictionary } from '../core/drawable'
-import { makeParticles } from './effect'
-import { makeShipBullet, Bullet } from './bullet'
-import { makeLaser } from './laser'
-import { makeHealthBar } from './healthbar'
+import { Observer, ObserverEvents } from 'utils/observer'
+import Math2 from 'utils/math2'
+import KeyCode from 'utils/keycode'
+import { Drawable, Presentable, TimeoutDictionary } from 'core/drawable'
+import { makeParticles } from 'movable/effect'
+import { makeShipBullet, Bullet } from 'movable/bullet'
+import { makeLaser } from 'movable/laser'
+import { makeHealthBar } from 'movable/healthbar'
 
 enum WeaponType {
   Bullet,

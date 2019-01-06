@@ -1,5 +1,5 @@
-import { Boundary, Drawable, Presentable } from '../core/drawable'
-import Math2 from '../utils/math2'
+import { Boundary, Drawable, Presentable } from 'core/drawable'
+import Math2 from 'utils/math2'
 
 export class Particle extends Drawable {
   type: Presentable = Presentable.Circle;

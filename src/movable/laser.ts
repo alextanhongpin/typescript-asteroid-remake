@@ -1,5 +1,5 @@
-import { Observer } from '../utils/observer'
-import { Drawable, Presentable, Boundary } from '../core/drawable'
+import { Observer } from 'utils/observer'
+import { Drawable, Presentable, Boundary } from 'core/drawable'
 
 export class Laser extends Drawable {
   type: Presentable = Presentable.Laser;

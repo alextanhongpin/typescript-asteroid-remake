@@ -1,15 +1,32 @@
 {
   "name": "asteroid-remake",
   "version": "1.0.0",
-  "description": "",
+  "description": "Attempting to rewrite the asteroid game with TypeScript and better code structure. Play it [here](http://alextanhongpin.github.io/games/).",
   "main": "index.js",
   "scripts": {
-    "init": "./node_modules/.bin/tsc --init",
-    "start": "./node_modules/.bin/tsc -w"
+    "init-tsc": "./node_modules/typescript/bin/tsc --init",
+    "start": "./node_modules/typescript/bin/tsc -w"
   },
   "author": "alextanhongpin <alextan220990@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "tslint-config-standard": "^7.0.0"
-  }
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^3.2.2"
+  },
+  "dependencies": {
+    "doctrine": "^0.7.2",
+    "esutils": "^1.1.6",
+    "isarray": "^0.0.1",
+    "tslib": "^1.9.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "tsutils": "^3.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alextanhongpin/typescript-asteroid-remake.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alextanhongpin/typescript-asteroid-remake/issues"
+  },
+  "homepage": "https://github.com/alextanhongpin/typescript-asteroid-remake#readme"
 }

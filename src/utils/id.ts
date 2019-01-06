@@ -1,6 +1,4 @@
-let id = 0
-
-export default function gen(): number {
-  id++
-  return id
-}
+export default function () {
+	let id = 0
+	return () => ++id
+} 
