@@ -1,10 +1,13 @@
-import Game from 'core/game'
-import { repeat } from 'core/drawable'
+// import Game from 'core/game'
+// import { repeat } from 'core/drawable'
 import { Observer, ObserverEvents } from 'utils/observer'
 import { isTouchDevice, onTouch } from 'utils/touch'
-import { AlienFactory } from 'movable/alien'
-import { ShipFactory } from 'movable/ship'
-import { AsteroidFactory } from 'movable/asteroid'
+// import { AlienFactory } from 'movable/alien'
+// import { ShipFactory } from 'movable/ship'
+// import { AsteroidFactory } from 'movable/asteroid'
+import { GameEngine } from 'models/engine'
+import { Ship } from 'models/ship'
+import { HealthBar } from 'models/healthbar'
 
 'use strict';
 
@@ -16,25 +19,29 @@ import { AsteroidFactory } from 'movable/asteroid'
   canvas.width = width
   canvas.height = height
 
-  let alienFactory = new AlienFactory()
-  let shipFactory = new ShipFactory()
-  let asteroidFactory = new AsteroidFactory()
+  // let alienFactory = new AlienFactory()
+  // let shipFactory = new ShipFactory()
+  // let asteroidFactory = new AsteroidFactory()
 
   let o = new Observer()
 
   handleMessage(o)
   isTouchDevice() && handleTouch(o)
 
-  let ship = shipFactory.build(o, width, height)
-  let asteroids = repeat(10, () => asteroidFactory.build(o, width, height))
-  let aliens = repeat(2, () => alienFactory.build(o, width, height))
+  // let ship = shipFactory.build(o, width, height)
+  // let asteroids = repeat(10, () => asteroidFactory.build(o, width, height))
+  // let aliens = repeat(2, () => alienFactory.build(o, width, height))
 
-  let game = new Game(canvas)
-  game
-    .setObserver(o)
-    .setDrawables(...ship, ...asteroids, ...aliens)
-    .setup()
-    .start()
+  const ship = new (HealthBar(Ship))(100, 100)
+  let game = new GameEngine(canvas)
+	game.register(ship)
+	game.start()
+  // let game = new Game(canvas)
+  // game
+  //   .setObserver(o)
+  //   .setDrawables(...ship, ...asteroids, ...aliens)
+  //   .setup()
+  //   .start()
 })()
 
 

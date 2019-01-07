@@ -1,4 +1,3 @@
-
 import { TimeoutDictionary, Drawable, Presentable, checkAngle } from 'core/drawable'
 import { Observer, ObserverEvents } from 'utils/observer'
 import Math2 from 'utils/math2'
@@ -6,7 +5,7 @@ import { makeAlienBullet, Bullet } from 'movable/bullet'
 import { makeEye } from 'movable/eye'
 import { makeHealthBar } from 'movable/healthbar'
 import { makeParticles } from 'movable/effect'
-import Teleportable from 'mixins/teleportable'
+import Teleportable from 'models/teleportable'
 
 export class Alien extends Drawable implements Teleportable {
   type: Presentable = Presentable.Alien;
