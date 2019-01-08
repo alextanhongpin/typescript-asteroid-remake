@@ -5,15 +5,10 @@ import { Controller } from 'models/movable'
 export class Ship extends SphereCharacter implements Character {
 	theta: number = 0
 	velocity: number = 1
-	friction: number = 0.95
 
-	get speed (): number {
-		return 8
-	}
-
-	get rotation () {
-    return Math2.degreeToTheta(10)
-	}
+	readonly friction: number = 0.95
+	readonly speed: number = 8
+	readonly rotation: number = Math2.degreeToTheta(10)
 
 	draw(ctx: CanvasRenderingContext2D) {
 		const alpha = 1
@@ -41,12 +36,12 @@ export class Ship extends SphereCharacter implements Character {
 		// ctrl.on('key:enter', this.enter)
 	}
 	up () {
-		this.velocity = Ship.speed()
+		this.velocity = this.speed
 	}
 	right () {
-    this.theta += Ship.rotation()
+    this.theta += this.rotation
 	}
 	left () {
-    this.theta -= Ship.rotation()
+    this.theta -= this.rotation
 	}
 }

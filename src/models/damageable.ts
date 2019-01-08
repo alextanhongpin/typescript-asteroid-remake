@@ -16,6 +16,7 @@ export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
 		visible: boolean = false
 		draw (ctx: CanvasRenderingContext2D) {
 			super.draw(ctx)
+
 			if (!this.visible) {
 				return
 			}
