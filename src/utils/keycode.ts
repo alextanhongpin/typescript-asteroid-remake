@@ -1,12 +1,12 @@
 enum KeyCode {
+  Down = 40,
   Enter = 13,
   Left = 37,
-  Up = 38,
+  Pause = 80,
   Right = 39,
-  Down = 40,
-  Space = 32,
   Shift = 16,
-  Pause = 80
+  Space = 32,
+  Up = 38,
 }
 
 export default KeyCode

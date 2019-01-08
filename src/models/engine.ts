@@ -1,27 +1,28 @@
-import { Movable } from 'models/movable'
+import { Character } from 'models/Character'
+
 export interface Engine {
 	ctx: CanvasRenderingContext2D;
 	canvas: HTMLCanvasElement;
-	movables: Record<number, Movable>;
+	movables: Map<symbol, Character>;
 	// new(canvas: HTMLCanvasElement): Engine
 	draw (): void
 	start(): void 
 	stop(): void 
 	pause(): void 
-	register(...args: Movable[]): void
+	register(...args: Character[]): void
 }
 
 export class GameEngine implements Engine {
-	ctx: CanvasRenderingContext2D;
+	ctx: CanvasRenderingContext2D
 	canvas: HTMLCanvasElement
-	movables: Record<string, Movable> = {};
+	movables: Map<symbol, Character> = new Map() 
 
 	private requestId: number = -1;
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas
 		this.ctx = canvas.getContext('2d')!
 	}
-	update (m: Movable) {
+	update (m: Character) {
 		if (!m.velocity) {
 			return
 		}
@@ -34,15 +35,17 @@ export class GameEngine implements Engine {
 	draw() {
 		this.ctx.save()
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-		for (let id in this.movables) {
-			const movable = this.movables[id]
+		const movables = Array.from(this.movables.values())
+		for (let movable of movables) {
 			movable.draw(this.ctx)
 			this.update(movable)
 		}
 		this.requestId = window.requestAnimationFrame(this.draw.bind(this))
 	}
 	pause() {
-		this.requestId < 0 ? this.start() : this.stop()
+		this.requestId < 0 
+			? this.start() 
+			: this.stop()
 	}
 	start() {
 		this.draw()
@@ -51,9 +54,9 @@ export class GameEngine implements Engine {
 		window.cancelAnimationFrame(this.requestId)
 		this.requestId = -1
 	}
-	register(...movables: Movable[]) {
+	register(...movables: Character[]) {
 		for (let m of movables) {
-			this.movables[m.id] = m
+			this.movables.set(m.id, m)
 		}
 	}
 }

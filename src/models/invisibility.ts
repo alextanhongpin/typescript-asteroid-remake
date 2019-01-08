@@ -1,4 +1,4 @@
-export default interface Invisibility {
+export interface Invisibility {
 	isVisible: boolean;
 	setVisibility(state: boolean): void
 }

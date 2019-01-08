@@ -1,20 +1,9 @@
-import { Movable } from 'models/movable'
+import { Character, SphereCharacter } from 'models/character'
 
-export class Ship implements Movable {
-	id: number = -1;
-
-	x: number;
-	y: number;
-
-	radius: number = 15;
+export class Ship extends SphereCharacter implements Character {
 	theta: number = 0;
 	velocity: number = 1;
 	friction: number = 0.95;
-
-	constructor(x: number, y: number) {
-		this.x = x
-		this.y = y
-	} 
 
 	draw(ctx: CanvasRenderingContext2D) {
 		const alpha = 1

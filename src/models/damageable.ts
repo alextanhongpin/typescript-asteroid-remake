@@ -1,15 +1,25 @@
-import { MovableConstructor } from 'models/movable'
+import { CharacterConstructor } from 'models/character'
 
-export function HealthBar<T extends MovableConstructor>(TBase: T): T {
-	return class extends TBase {
-		hp: number = 100;
-		maxHp: number = 100;
-		width: number = 50;
-		height: number = 5;
-		spacing: number = 1;
-		padding: number = 2;
+export interface Damageable {
+	hp: number
+	maxHp: number
+}
+
+export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
+	return class extends TBase implements Damageable {
+		hp: number = 100
+		maxHp: number = 100
+		width: number = 50
+		height: number = 5
+		spacing: number = 1
+		padding: number = 2
+		visible: boolean = false
 		draw (ctx: CanvasRenderingContext2D) {
 			super.draw(ctx)
+			if (!this.visible) {
+				return
+			}
+
 			// if isVisible
 			const { width, height, spacing, padding, hp, maxHp, x, y } = this
 			const hpRatio = hp / maxHp

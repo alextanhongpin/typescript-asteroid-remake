@@ -1,7 +1,9 @@
-import GenId from 'utils/id'
 import { Observer } from 'utils/observer'
 
-const genId = GenId()
+let i = 0
+const genId = function () {
+	return ++i
+}
 
 export enum Presentable {
   Alien,

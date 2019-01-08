@@ -1,3 +1,3 @@
-export default interface Drawable {
-	draw(): void
+export interface Drawable {
+	draw(ctx: CanvasRenderingContext2D): void
 }
