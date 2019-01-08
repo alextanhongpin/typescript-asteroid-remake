@@ -1,21 +1,28 @@
 import { Character } from 'models/Character'
 
+export interface Pausable {
+	pause(): void
+}
+
+export interface Startable {
+	start(): void
+}
+
+export interface Stoppable {
+	stop(): void
+}
+
 export interface Engine {
 	ctx: CanvasRenderingContext2D;
 	canvas: HTMLCanvasElement;
-	movables: Map<symbol, Character>;
-	// new(canvas: HTMLCanvasElement): Engine
-	draw (): void
-	start(): void 
-	stop(): void 
-	pause(): void 
+	characters: Map<symbol, Character>;
 	register(...args: Character[]): void
 }
 
-export class GameEngine implements Engine {
+export class GameEngine implements Engine, Pausable, Startable, Stoppable {
 	ctx: CanvasRenderingContext2D
 	canvas: HTMLCanvasElement
-	movables: Map<symbol, Character> = new Map() 
+	characters: Map<symbol, Character> = new Map() 
 
 	private requestId: number = -1;
 	constructor(canvas: HTMLCanvasElement) {
@@ -35,8 +42,8 @@ export class GameEngine implements Engine {
 	draw() {
 		this.ctx.save()
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-		const movables = Array.from(this.movables.values())
-		for (let movable of movables) {
+		const characters = Array.from(this.characters.values())
+		for (let movable of characters) {
 			movable.draw(this.ctx)
 			this.update(movable)
 		}
@@ -54,9 +61,9 @@ export class GameEngine implements Engine {
 		window.cancelAnimationFrame(this.requestId)
 		this.requestId = -1
 	}
-	register(...movables: Character[]) {
-		for (let m of movables) {
-			this.movables.set(m.id, m)
+	register(...characters: Character[]) {
+		for (let m of characters) {
+			this.characters.set(m.id, m)
 		}
 	}
 }
