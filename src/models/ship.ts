@@ -1,8 +1,9 @@
 import { Character, SphereCharacter } from 'models/character'
 import Math2 from 'utils/math2'
 import { Controller } from 'models/controller'
+import { Teleportable } from 'models/teleportable'
 
-export class Ship extends SphereCharacter implements Character {
+export class Ship extends SphereCharacter implements Character, Teleportable {
 	theta: number = 0
 	velocity: number = 1
 
@@ -27,21 +28,32 @@ export class Ship extends SphereCharacter implements Character {
 		ctx.closePath()
 		ctx.restore()
 	}
-	registerController(ctrl: Controller) {
-		ctrl.on('key:up', this.up)
-		ctrl.on('key:left', this.left)
-		ctrl.on('key:right', this.right)
-		// ctrl.on('key:shift', this.shift)
+
+	registerKeyboard(ctrl: Controller) {
+		ctrl.on('key:up', () => this.up())
+		ctrl.on('key:left', () => this.left())
+		ctrl.on('key:right', () => this.right())
+		ctrl.on('key:shift', () => this.shift())
 		// ctrl.on('key:space', this.space)
 		// ctrl.on('key:enter', this.enter)
 	}
-	up () {
+
+	private up () {
 		this.velocity = this.speed
 	}
-	right () {
-    this.theta += this.rotation
+
+	private right () {
+		this.theta += this.rotation
 	}
-	left () {
-    this.theta -= this.rotation
+
+	private left () {
+		this.theta -= this.rotation
 	}
+
+	private shift () {
+		this.teleport()
+	}
+
+	// Creates an empty implementation first, decorate it later.
+	teleport () {}
 }

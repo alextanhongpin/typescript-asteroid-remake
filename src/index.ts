@@ -1,10 +1,14 @@
 // import { Observer } from 'models/observable'
 // import { isTouchDevice, onTouch } from 'utils/touch'
 
-import { GameEngine } from 'models/engine'
-import { Ship } from 'models/ship'
-import { withHealthBar } from 'models/damageable'
-import { Character } from 'models/character'
+import { 
+	withHealthBar, 
+	withTeleport, 
+	withRepeatBoundary,
+	Ship,
+	GameEngine,
+	KeyboardController
+} from 'models/index'
 
 'use strict';
 
@@ -24,26 +28,23 @@ import { Character } from 'models/character'
   // let ship = shipFactory.build(o, width, height)
   // let asteroids = repeat(10, () => asteroidFactory.build(o, width, height))
   // let aliens = repeat(2, () => alienFactory.build(o, width, height))
+  const keyboard = new KeyboardController()
 
   const ship = makeShip() 
+	ship.registerKeyboard(keyboard)
   let game = new GameEngine(canvas)
 	game.register(ship)
 	game.start()
-  // let game = new Game(canvas)
-  // game
-  //   .setObserver(o)
-  //   .setDrawables(...ship, ...asteroids, ...aliens)
-  //   .setup()
-  //   .start()
 })()
 
-function makeShip (): Character {
-	const ShipWithHealthBar = withHealthBar(Ship)
+function makeShip (): Ship {
+	const [width, height] = [window.innerWidth, window.innerHeight]
+	const BattleShip = withTeleport(withHealthBar(withRepeatBoundary(width, height)(Ship)))
 	const ns = 'ship'
 	const x = 100
 	const y = 100
 	const radius = 15
-	return new ShipWithHealthBar(ns, x, y, radius)
+	return new BattleShip(ns, x, y, radius)
 }
 
 

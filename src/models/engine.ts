@@ -29,23 +29,13 @@ export class GameEngine implements Engine, Pausable, Startable, Stoppable {
 		this.canvas = canvas
 		this.ctx = canvas.getContext('2d')!
 	}
-	update (m: Character) {
-		if (!m.velocity) {
-			return
-		}
-		m.x += Math.cos(m.theta) * m.velocity
-		m.y += Math.sin(m.theta) * m.velocity
-		if (m.friction > 0) {
-			m.velocity *= m.friction
-		}
-	}
 	draw() {
 		this.ctx.save()
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 		const characters = Array.from(this.characters.values())
 		for (let movable of characters) {
 			movable.draw(this.ctx)
-			this.update(movable)
+			movable.update()
 		}
 		this.requestId = window.requestAnimationFrame(this.draw.bind(this))
 	}

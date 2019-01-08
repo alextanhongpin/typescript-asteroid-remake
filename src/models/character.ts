@@ -1,11 +1,12 @@
 import { Vector } from 'models/vector'
 import { Movable } from 'models/movable'
 import { Drawable } from 'models/drawable'
+import { Updatable } from 'models/updatable'
 
 export type CharacterConstructor<T = Character> = new (...args: any[]) => T
 
 // Character represents a game character, and can be a ship, alien etc.
-export class Character implements Vector, Movable, Drawable {
+export class Character implements Vector, Movable, Drawable, Updatable {
 	id: symbol
 	x: number
 	y: number
@@ -21,6 +22,16 @@ export class Character implements Vector, Movable, Drawable {
 
 	draw (ctx: CanvasRenderingContext2D) {
 		ctx.save()
+	}
+	update () {
+		if (!this.velocity) {
+			return
+		}
+		this.x += Math.cos(this.theta) * this.velocity
+		this.y += Math.sin(this.theta) * this.velocity
+		if (this.friction > 0) {
+			this.velocity *= this.friction
+		}
 	}
 }
 
@@ -46,6 +57,7 @@ export class SphereCharacter extends Character {
 export class RectangleCharacter extends Character {
 	width: number
 	height: number
+
 	constructor (
 		ns: string,
 		x: number,
