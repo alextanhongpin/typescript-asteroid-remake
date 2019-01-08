@@ -1,6 +1,6 @@
 import { Character, SphereCharacter } from 'models/character'
 import Math2 from 'utils/math2'
-import { Controller } from 'models/movable'
+import { Controller } from 'models/controller'
 
 export class Ship extends SphereCharacter implements Character {
 	theta: number = 0
