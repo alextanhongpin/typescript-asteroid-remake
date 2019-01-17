@@ -1,4 +1,3 @@
-
 import { CharacterConstructor } from 'models/character'
 
 export function withRepeatBoundary<T extends CharacterConstructor>(width: number, height: number): (TBase: T) => T  {

@@ -37,8 +37,9 @@ import {
 	game.start()
 })()
 
-function makeShip (): Ship {
+function makeShip (): any {
 	const [width, height] = [window.innerWidth, window.innerHeight]
+	// NOTE: The type is no longer Ship, but something that extends Ship.
 	const BattleShip = withTeleport(withHealthBar(withRepeatBoundary(width, height)(Ship)))
 	const ns = 'ship'
 	const x = 100
