@@ -29,7 +29,7 @@ export class GameEngine implements Engine, Pausable, Startable, Stoppable {
 		this.canvas = canvas
 		this.ctx = canvas.getContext('2d')!
 	}
-	draw() {
+	eventloop() {
 		this.ctx.save()
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 		const characters = Array.from(this.characters.values())
@@ -37,7 +37,7 @@ export class GameEngine implements Engine, Pausable, Startable, Stoppable {
 			movable.draw(this.ctx)
 			movable.update()
 		}
-		this.requestId = window.requestAnimationFrame(this.draw.bind(this))
+		this.requestId = window.requestAnimationFrame(this.eventloop.bind(this))
 	}
 	pause() {
 		this.requestId < 0 
@@ -45,12 +45,13 @@ export class GameEngine implements Engine, Pausable, Startable, Stoppable {
 			: this.stop()
 	}
 	start() {
-		this.draw()
+		this.eventloop()
 	}
 	stop() {
 		window.cancelAnimationFrame(this.requestId)
 		this.requestId = -1
 	}
+	// Register the characters. New characters can be added dynamically too.
 	register(...characters: Character[]) {
 		for (let m of characters) {
 			this.characters.set(m.id, m)

@@ -66,5 +66,7 @@ export function withTeleport<T extends CharacterConstructor>(TBase: T): T {
 
 			this.particles.forEach(particle => particle.update())
 		}
+		register () {
+		}
 	}
 }

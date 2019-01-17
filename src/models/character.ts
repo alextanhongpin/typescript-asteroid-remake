@@ -23,6 +23,7 @@ export class Character implements Vector, Movable, Drawable, Updatable {
 	draw (ctx: CanvasRenderingContext2D) {
 		ctx.save()
 	}
+
 	update () {
 		if (!this.velocity) {
 			return
