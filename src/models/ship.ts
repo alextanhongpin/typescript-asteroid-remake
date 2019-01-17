@@ -34,8 +34,8 @@ export class Ship extends SphereCharacter implements Character, Teleportable {
 		ctrl.on('key:left', () => this.left())
 		ctrl.on('key:right', () => this.right())
 		ctrl.on('key:shift', () => this.shift())
-		// ctrl.on('key:space', this.space)
-		// ctrl.on('key:enter', this.enter)
+		ctrl.on('key:space', () => this.shoot())
+		ctrl.on('key:enter', () => this.weapon())
 	}
 
 	private up () {
@@ -56,4 +56,6 @@ export class Ship extends SphereCharacter implements Character, Teleportable {
 
 	// Creates an empty implementation first, decorate it later.
 	teleport () {}
+	shoot () {}
+	weapon () {}
 }

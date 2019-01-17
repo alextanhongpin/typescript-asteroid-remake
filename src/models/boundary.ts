@@ -14,3 +14,9 @@ export function withRepeatBoundary<T extends CharacterConstructor>(width: number
 	}
 }
 
+export function isOutOfBound(x: number, y: number): boolean {
+	return x < 0
+		|| x > window.innerWidth 
+		|| y < 0
+		|| y > window.innerHeight
+}

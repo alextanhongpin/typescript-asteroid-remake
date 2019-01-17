@@ -5,10 +5,14 @@ import {
 	withHealthBar, 
 	withTeleport, 
 	withRepeatBoundary,
+	withBullets,
 	Ship,
 	GameEngine,
-	KeyboardController
+	KeyboardController,
+	Asteroid
 } from 'models/index'
+
+import Math2 from 'utils/math2'
 
 'use strict';
 
@@ -32,15 +36,27 @@ import {
 
   const ship = makeShip() 
 	ship.registerKeyboard(keyboard)
-  let game = new GameEngine(canvas)
-	game.register(ship)
+
+  const BoundedAsteroid = withRepeatBoundary(width, height)(Asteroid)
+	const asteroids = Array(10).fill(() => {
+		return new BoundedAsteroid(
+			'asteroid', 
+			Math2.random(0, width),
+			Math2.random(0, height), 
+			Math2.random(30, 50), 
+			false
+		)
+	}).map(fn => fn())
+	console.log(asteroids)
+  const game = new GameEngine(canvas)
+	game.register(ship, ...asteroids)
 	game.start()
 })()
 
 function makeShip (): any {
 	const [width, height] = [window.innerWidth, window.innerHeight]
 	// NOTE: The type is no longer Ship, but something that extends Ship.
-	const BattleShip = withTeleport(withHealthBar(withRepeatBoundary(width, height)(Ship)))
+	const BattleShip = withBullets(withTeleport(withHealthBar(withRepeatBoundary(width, height)(Ship))))
 	const ns = 'ship'
 	const x = 100
 	const y = 100

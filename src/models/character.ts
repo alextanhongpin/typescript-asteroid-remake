@@ -37,9 +37,11 @@ export class Character implements Vector, Movable, Drawable, Updatable {
 
 export class SphereCharacter extends Character {
 	radius: number
-	constructor (ns: string, x: number, y: number, radius: number) {
+	isFilled: boolean 
+	constructor (ns: string, x: number, y: number, radius: number, isFilled = true){
 		super(ns, x, y)
 		this.radius = radius
+		this.isFilled = isFilled 
 	}
 
 	draw (ctx: CanvasRenderingContext2D) {
@@ -47,8 +49,13 @@ export class SphereCharacter extends Character {
 		ctx.translate(this.x, this.y)
 		ctx.beginPath()
 		ctx.arc(0, 0, this.radius, 0, Math.PI * 2, false)
-		ctx.fillStyle = 'white'
-		ctx.fill()
+		if (this.isFilled) {
+			ctx.fillStyle = 'white'
+			ctx.fill()
+		} else {
+			ctx.strokeStyle = 'white'
+			ctx.stroke()
+		}
 		ctx.closePath()
 		ctx.restore()
 	}
