@@ -9,7 +9,9 @@ import {
 	Ship,
 	GameEngine,
 	KeyboardController,
-	Asteroid
+	Asteroid,
+	Observer,
+	Observable
 } from 'models/index'
 
 import Math2 from 'utils/math2'
@@ -17,14 +19,14 @@ import Math2 from 'utils/math2'
 'use strict';
 
 (function () {
-  let width = window.innerWidth
-  let height = window.innerHeight
+  const width = window.innerWidth
+  const height = window.innerHeight
 
-  let canvas = <HTMLCanvasElement>document.getElementById('canvas')
+  const canvas = <HTMLCanvasElement>document.getElementById('canvas')
   canvas.width = width
   canvas.height = height
 
-  // let o = new Observer()
+	const obs = new Observable()
 
   // handleMessage(o)
   // isTouchDevice() && handleTouch(o)
@@ -34,36 +36,40 @@ import Math2 from 'utils/math2'
   // let aliens = repeat(2, () => alienFactory.build(o, width, height))
   const keyboard = new KeyboardController()
 
-  const ship = makeShip() 
+  const ship = makeShip(obs, width, height) 
+	const asteroids = makeAsteroids(obs, width, height, 10)
 	ship.registerKeyboard(keyboard)
 
-  const BoundedAsteroid = withRepeatBoundary(width, height)(Asteroid)
-	const asteroids = Array(10).fill(() => {
-		return new BoundedAsteroid(
-			'asteroid', 
-			Math2.random(0, width),
-			Math2.random(0, height), 
-			Math2.random(30, 50), 
-			false
-		)
-	}).map(fn => fn())
 	console.log(asteroids)
   const game = new GameEngine(canvas)
 	game.register(ship, ...asteroids)
 	game.start()
 })()
 
-function makeShip (): any {
-	const [width, height] = [window.innerWidth, window.innerHeight]
+function makeShip (obs: Observer, width: number, height: number): any { 
 	// NOTE: The type is no longer Ship, but something that extends Ship.
 	const BattleShip = withBullets(withTeleport(withHealthBar(withRepeatBoundary(width, height)(Ship))))
-	const ns = 'ship'
 	const x = 100
 	const y = 100
 	const radius = 15
-	return new BattleShip(ns, x, y, radius)
+	return new BattleShip(obs, x, y, radius)
 }
 
+
+function makeAsteroids(obs: Observer, width: number, height: number, n: number): any {
+  const BoundedAsteroid = withRepeatBoundary(width, height)(Asteroid)
+	const [minRadius, maxRadius] = [30, 50]
+	const asteroids = Array(n).fill(() => {
+		return new BoundedAsteroid(
+			obs,
+			Math2.random(0, width),
+			Math2.random(0, height), 
+			Math2.random(minRadius, maxRadius), 
+			false
+		)
+	}).map(fn => fn())
+	return asteroids
+}
 
 // function handleMessage(o: Observer) {
 //   let messageView = document.getElementById('message')!

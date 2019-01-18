@@ -16,10 +16,9 @@ class Gun implements Weapon {
 			if (this.bullets.size >= this.ammo) {
 				return
 			} 
-			const { x, y, theta } = character
-			const ns = 'bullet'
+			const { x, y, theta, obs } = character
 			const radius = 2
-			const bullet = new Bullet(ns, x, y, radius)
+			const bullet = new Bullet(obs, x, y, radius)
 			bullet.theta = theta
 			this.bullets.set(bullet.id, bullet)
 	}
@@ -41,7 +40,7 @@ class Gun implements Weapon {
 
 class Laser implements Weapon {
 	private beam: Beam | null = null;
-	private character: SphereCharacter
+	character: Character|null = null;
 	constructor(private seconds: number) {
 	}
 	shoot (character: SphereCharacter) {
@@ -49,9 +48,8 @@ class Laser implements Weapon {
 			return
 		}
 		this.character = character
-		const { x, y, radius, theta } = character
-		const ns = 'beam'
-		const beam = new Beam(ns, x, y, -1, -1)
+		const { x, y, radius, theta, obs } = character
+		const beam = new Beam(obs, x, y, -1, -1)
 		beam.radius = radius
 		beam.theta = theta
 		this.beam = beam
@@ -64,6 +62,9 @@ class Laser implements Weapon {
 	}
 	update () {
 		if (!this.beam) {
+			return
+		}
+		if (!this.character) {
 			return
 		}
 		this.beam.x = this.character.x
@@ -79,9 +80,9 @@ class Beam extends RectangleCharacter {
 	friction: number = 0
 
 	draw (ctx: CanvasRenderingContext2D) {
-      const { x, y, theta, radius } = this
-	  let thetaX = Math.cos(theta)
-	  let thetaY = Math.sin(theta)
+    const { x, y, theta, radius } = this
+	  const thetaX = Math.cos(theta)
+	  const thetaY = Math.sin(theta)
 
 	  ctx.save()
 	  ctx.translate(x, y)
@@ -112,9 +113,11 @@ export function withBullets<T extends CharacterConstructor>(TBase: T): T {
 	return class extends TBase {
 		private weapons: Weapon[] = [new Gun(10), new Laser(1000)]
 		private selection: number = 0
+
 		weapon() {
-				this.selection = (this.selection+1)%this.weapons.length
+			this.selection = (this.selection+1)%this.weapons.length
 		}
+
 		shoot () {
 			const weapon = this.weapons[this.selection]
 			weapon.shoot(this)

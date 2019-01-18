@@ -2,6 +2,7 @@ import { Vector } from 'models/vector'
 import { Movable } from 'models/movable'
 import { Drawable } from 'models/drawable'
 import { Updatable } from 'models/updatable'
+import { Observer } from 'models/observable'
 
 export type CharacterConstructor<T = Character> = new (...args: any[]) => T
 
@@ -13,9 +14,11 @@ export class Character implements Vector, Movable, Drawable, Updatable {
 	velocity: number = 1
 	theta: number = 0
 	friction: number = 0.95
+	obs: Observer;
 
-	constructor (ns: string, x: number, y: number) {
-		this.id = Symbol(ns)
+	constructor (obs: Observer, x: number, y: number) {
+		this.id = Symbol(this.constructor.name)
+		this.obs = obs
 		this.x = x
 		this.y = y
 	}
@@ -39,8 +42,8 @@ export class Character implements Vector, Movable, Drawable, Updatable {
 export class SphereCharacter extends Character {
 	radius: number
 	isFilled: boolean 
-	constructor (ns: string, x: number, y: number, radius: number, isFilled = true){
-		super(ns, x, y)
+	constructor (obs: Observer, x: number, y: number, radius: number, isFilled = true){
+		super(obs, x, y)
 		this.radius = radius
 		this.isFilled = isFilled 
 	}
@@ -67,13 +70,13 @@ export class RectangleCharacter extends Character {
 	height: number
 
 	constructor (
-		ns: string,
+		obs: Observer,
 		x: number,
 		y: number,
 		width: number,
 		height: number
 	) {
-		super(ns, x, y)
+		super(obs, x, y)
 		this.width = width
 		this.height = height
 	}
