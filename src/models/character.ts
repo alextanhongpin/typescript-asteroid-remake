@@ -21,6 +21,9 @@ export class Character implements Vector, Movable, Drawable, Updatable {
 		this.obs = obs
 		this.x = x
 		this.y = y
+
+		// Self-discovery.
+		obs.emit('register', this)
 	}
 
 	draw (ctx: CanvasRenderingContext2D) {

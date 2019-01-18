@@ -3,6 +3,8 @@ import { CharacterConstructor } from 'models/character'
 export interface Damageable {
 	hp: number
 	maxHp: number
+
+	damage(n: number): boolean
 }
 
 export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
@@ -14,6 +16,13 @@ export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
 		spacing: number = 1
 		padding: number = 2
 		visible: boolean = false 
+		damage (n: number) {
+			this.hp -= n
+			if (this.hp < 0) {
+				this.hp = 0
+			}
+			return this.hp === 0 
+		}
 		draw (ctx: CanvasRenderingContext2D) {
 			super.draw(ctx)
 			if (!this.visible) {

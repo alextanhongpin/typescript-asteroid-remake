@@ -2,10 +2,11 @@ import { Character, CharacterConstructor, SphereCharacter, RectangleCharacter } 
 import { Bullet } from 'models/bullet'
 import { isOutOfBound } from 'models/boundary'
 
-interface Weapon {
+export interface Weapon {
 	shoot (char: Character): void
 	draw (ctx: CanvasRenderingContext2D): void
 	update(): void
+	destroy(character: Character): void
 }
 
 class Gun implements Weapon {
@@ -18,7 +19,7 @@ class Gun implements Weapon {
 			} 
 			const { x, y, theta, obs } = character
 			const radius = 2
-			const bullet = new Bullet(obs, x, y, radius)
+			const bullet = new Bullet(obs, x, y, radius, true, this)
 			bullet.theta = theta
 			this.bullets.set(bullet.id, bullet)
 	}
@@ -28,13 +29,17 @@ class Gun implements Weapon {
 			}
 	}
 	update () {
-		for (let [id, bullet] of this.bullets) {
+		for (let [, bullet] of this.bullets) {
 			if (isOutOfBound(bullet.x, bullet.y)) {
-				this.bullets.delete(id)
+				bullet.obs.emit('unregister', bullet)
+				bullet.destroy()
 				continue
 			}
 			bullet.update()
 		}
+	}
+	destroy (c: Character) {
+		this.bullets.delete(c.id)
 	}
 }
 
@@ -54,6 +59,7 @@ class Laser implements Weapon {
 		beam.theta = theta
 		this.beam = beam
 		setTimeout(() => {
+			character.obs.emit('unregister', this.beam)
 			this.beam = null
 		}, this.seconds)
 	}
@@ -71,6 +77,8 @@ class Laser implements Weapon {
 		this.beam.y = this.character.y
 		this.beam.theta = this.character.theta
 		this.beam && this.beam.update()
+	}
+	destroy (_: Character) {
 	}
 } 
 

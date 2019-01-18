@@ -11,7 +11,6 @@ import {
 	KeyboardController,
 	Asteroid,
 	Observer,
-	Observable
 } from 'models/index'
 
 import Math2 from 'utils/math2'
@@ -26,7 +25,6 @@ import Math2 from 'utils/math2'
   canvas.width = width
   canvas.height = height
 
-	const obs = new Observable()
 
   // handleMessage(o)
   // isTouchDevice() && handleTouch(o)
@@ -36,13 +34,12 @@ import Math2 from 'utils/math2'
   // let aliens = repeat(2, () => alienFactory.build(o, width, height))
   const keyboard = new KeyboardController()
 
-  const ship = makeShip(obs, width, height) 
-	const asteroids = makeAsteroids(obs, width, height, 10)
-	ship.registerKeyboard(keyboard)
-
-	console.log(asteroids)
   const game = new GameEngine(canvas)
-	game.register(ship, ...asteroids)
+	game.register((obs: Observer) => {
+	    const ship = makeShip(obs, width, height) 
+		ship.registerKeyboard(keyboard)
+		makeAsteroids(obs, width, height, 10)
+	})
 	game.start()
 })()
 
@@ -57,7 +54,8 @@ function makeShip (obs: Observer, width: number, height: number): any {
 
 
 function makeAsteroids(obs: Observer, width: number, height: number, n: number): any {
-  const BoundedAsteroid = withRepeatBoundary(width, height)(Asteroid)
+
+  const BoundedAsteroid = withHealthBar(withRepeatBoundary(width, height)(Asteroid))
 	const [minRadius, maxRadius] = [30, 50]
 	const asteroids = Array(n).fill(() => {
 		return new BoundedAsteroid(

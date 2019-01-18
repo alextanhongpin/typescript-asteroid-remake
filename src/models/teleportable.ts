@@ -1,28 +1,13 @@
-import { SphereCharacter, CharacterConstructor } from 'models/character'
+import {  CharacterConstructor } from 'models/character'
+import { Observer } from 'models/observable'
+import { Particle } from 'models/particle'
 import Math2 from 'utils/math2'
 
 export interface Teleportable {
 	teleport(): void
 }
 
-class Particle extends SphereCharacter {
-	readonly velocity: number = -0.5 
-	readonly friction: number = 0.95
-	constructor(ns: string, x: number, y: number, radius: number, theta: number) {
-		super(ns, x, y, radius)
-		this.theta = theta
-	}
-	update() {
-		this.radius -= 0.1
-		if (this.radius <= 0) {
-			this.radius = 0
-			return
-		}
-		super.update()
-	}
-}
-
-export function makeParticles(count: number, posX: number, posY: number): Particle[] {
+export function makeParticles(obs: Observer, count: number, posX: number, posY: number): Particle[] {
   let radian = 2 * Math.PI / count
   return Array(count).fill(null).map((_, i) => {
     const theta = i * radian
@@ -30,7 +15,7 @@ export function makeParticles(count: number, posX: number, posY: number): Partic
 	const radius = 2
     const x = posX + spread * Math.cos(theta)
     const y = posY + spread * Math.sin(theta)
-    return new Particle('particle', x, y, radius, theta)
+    return new Particle(obs, x, y, radius, theta)
   })
 }
 
@@ -41,7 +26,7 @@ export function withTeleport<T extends CharacterConstructor>(TBase: T): T {
 			const { x, y } = this
 			this.x = Math2.random(0, window.innerWidth)
 			this.y = Math2.random(0, window.innerHeight)
-			this.particles = makeParticles(12, x, y)
+			this.particles = makeParticles(this.obs, 12, x, y)
 		}
 		draw(ctx: CanvasRenderingContext2D) {
 			super.draw(ctx)
@@ -60,13 +45,15 @@ export function withTeleport<T extends CharacterConstructor>(TBase: T): T {
 			// }, 0)
 
 			if (!radius) {
+				const particles = this.particles
+				for (let particle of particles) {
+					this.obs.emit('unregister', particle)
+				}
 				this.particles = []
 				return
 			}
 
 			this.particles.forEach(particle => particle.update())
-		}
-		register () {
 		}
 	}
 }

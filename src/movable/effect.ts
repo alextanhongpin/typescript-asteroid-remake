@@ -52,3 +52,8 @@ export function makeSparks(count: number, posX: number, posY: number, startTheta
     return new Particle(x, y, theta, velocity)
   })
 }
+
+
+export function checkAngle(m1: Drawable, m2: Drawable) {
+  return Math.atan2(m2.y - m1.y, m2.x - m1.x)
+}
