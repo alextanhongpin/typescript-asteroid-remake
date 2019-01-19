@@ -1,12 +1,18 @@
-import { Character, CharacterConstructor, SphereCharacter } from 'models/character'
 import Math2 from 'utils/math2'
-import { withOutOfBound } from 'models/boundary'
+import { Character, CharacterConstructor, SphereCharacter } from 'models/character'
+import { withOutOfBound, randomX, randomY } from 'models/boundary'
 
 export class Alien extends SphereCharacter {
 	friction = 0.99;
 	velocity = 3;
+
+	// Randomize the start angle.
 	theta = Math2.random(0, 2 * Math.PI)
+
+	// Keep track of player movement.
 	trackers: Character[] = []
+
+	// The duration to execute shoot and teleport commands.
 	programInterval = Math2.random(2750, 3250)
 
 	constructor(...props: any[]) {
@@ -20,11 +26,18 @@ export class Alien extends SphereCharacter {
 	}
 
 	flightProgram() {
+		// Reset velocity.
 		this.friction = 0.99
 		this.velocity = 3
+
+		// Change the orientation.
 		this.theta = Math2.random(0, 2 * Math.PI)
-		this.x = Math2.random(0, window.innerWidth)
-		this.y = Math2.random(0, window.innerHeight)
+
+		// Randomize location in the game world.
+		this.x = randomX() 
+		this.y = randomY()
+
+		// Shoot twice.
 		this.shootProgram()
 		window.setTimeout(() => {
 			this.shootProgram()
@@ -80,9 +93,9 @@ export class Alien extends SphereCharacter {
 	  ctx.translate(x, y)
 	  ctx.beginPath()
 		
-		const theta = this.trackers.length
-			? checkAngle(this, this.trackers[0])
-			: 0
+	  const theta = this.trackers.length
+		? checkAngle(this, this.trackers[0])
+		: 0
 	  ctx.arc(5 * Math.cos(theta), 5 * Math.sin(theta), 2, 0, Math.PI * 2, false)
 	  ctx.fillStyle = 'white'
 	  ctx.fill()

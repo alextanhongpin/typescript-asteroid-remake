@@ -1,4 +1,5 @@
 import { CharacterConstructor } from 'models/character'
+import Math2 from 'utils/math2'
 
 export function withRepeatBoundary<T extends CharacterConstructor>(width: number, height: number): (TBase: T) => T  {
 	return function (TBase: T): T {
@@ -30,4 +31,12 @@ export function withOutOfBound<T extends CharacterConstructor>(TBase: T): T {
 			}
 		}
 	}
+}
+
+export function randomX () {
+	return Math2.random(0, window.innerWidth)
+}
+
+export function randomY() {
+	return Math2.random(0, window.innerHeight)
 }
