@@ -1,32 +1,33 @@
+type Event = symbol | string
+
 export interface Observer {
-	on(event: string, fn: Function): void
-	off(event: string, fn: Function): void
-	emit(event: string, ...args: any[]): void
+	on(event: Event, fn: Function): void
+	once(event: Event, fn: Function): void
+	off(event: Event): void
+	emit(event: Event, ...args: any[]): void
 }
 
 export class Observable implements Observer {
-	private events: Record<string, Function[]> = {}
-	on(event: string, fn: Function) {
-		if (!(event in this.events)) {
-			this.events[event] = []
+	private events: Map<Event, Function[]> = new Map()
+	on(event: Event, fn: Function) {
+		if (!(this.events.has(event))) {
+			this.events.set(event, [])
 		}
-		this.events[event].push(fn)
+		this.events.get(event)!.push(fn)
 	}
-	off(event: string, fn: Function) {
-		if (event in this.events) {
-			this.events[event] = this.events[event].filter((prev: Function) => {
-				return fn !== prev
-			})
-			if (!this.events[event].length) {
-				delete this.events[event]
-			}
+	once(event: Event, fn: Function) {
+		if (this.events.has(event)) {
+			return
 		}
+		this.events.set(event, [fn])
 	}
-	emit(event: string, ...args: any[]) {
-		if (event in this.events) {
-			for (let fn of this.events[event]) {
-				fn.apply(this, args)
-			}
+	off(event: Event) {
+		this.events.delete(event)
+	}
+	emit(event: Event, ...args: any[]) {
+		const events = this.events.get(event)
+		if (events) {
+			events.forEach(event => event.apply(this, args))
 		}
 	}
 }

@@ -7,8 +7,8 @@ import { Asteroid } from 'models/asteroid'
 import { Bullet } from 'models/bullet'  
 import Math2 from 'utils/math2'
 import { Particle } from 'models/particle'
-import { Damageable } from 'models/damageable'
-type AsteroidDamageable = Partial<Damageable> & SphereCharacter
+import { DAMAGE, HEALTH_ZERO } from 'models/damageable'
+import { Laser, Beam } from 'models/weaponize'
 
 export interface Pausable {
 	pause(): void
@@ -40,11 +40,11 @@ export class GameEngine extends Observable implements Engine, Pausable, Startabl
 		this.canvas = canvas
 		this.ctx = canvas.getContext('2d')!
 
-		this.on('register', (c: Character) => {
+		this.once('register', (c: Character) => {
 			this.characters.set(c.id, c)
 		})
 
-		this.on('unregister', (c: Character) => {
+		this.once('unregister', (c: Character) => {
 			this.characters.delete(c.id)
 		})
 	}
@@ -61,6 +61,8 @@ export class GameEngine extends Observable implements Engine, Pausable, Startabl
 	checkCollision(char1: Character) {
 		for (let [, char2] of this.characters) {
 			if (char1 === char2) continue
+
+			// When the ship bullet hits the asteroid.
 			if (char1 instanceof Bullet && char2 instanceof Asteroid) {
 				const [bullet, asteroid] = [char1, char2]
 				if (checkCollision(bullet, asteroid)) {
@@ -69,13 +71,26 @@ export class GameEngine extends Observable implements Engine, Pausable, Startabl
 					bullet.destroy()
 					this.characters.delete(bullet.id)
 
-					if (asteroid.damage(10)) {
-						this.characters.delete(asteroid.id)
-					}
-
-
 					// Apply damage to asteroid.
+					asteroid.emit(DAMAGE, 10)
+
 					// If asteroid health is -tive, destroy it.
+					asteroid.once(HEALTH_ZERO, () => {
+						this.characters.delete(asteroid.id)
+					})
+				}
+			}
+
+			if (char1 instanceof Beam && char2 instanceof Asteroid) {
+				const [laser, asteroid] = [char1, char2]
+				if (checkLaserCollision(laser, asteroid)) {
+					// TODO: Get the laser damage.
+					asteroid.emit(DAMAGE, 1)
+
+					// If asteroid health is -tive, destroy it.
+					asteroid.once(HEALTH_ZERO, () => {
+						this.characters.delete(asteroid.id)
+					})
 				}
 			}
 		}
@@ -106,13 +121,11 @@ export function checkCollision(c1: SphereCharacter, c2: SphereCharacter): boolea
   return Math.sqrt(deltaX + deltaY) < radius
 }
 
-// export function checkLaserCollision(m1: Drawable, m2: Drawable): boolean {
-//   let deltaY = Math.tan(m1.theta) * (m2.x - m1.x)
-//   let y2 = m1.y + deltaY
-//   return Math.abs(m2.y - y2) < m2.radius
-// }
-
-
+export function checkLaserCollision(c1: Character, c2: SphereCharacter): boolean {
+  const deltaY = Math.tan(c1.theta) * (c2.x - c1.x)
+  const y2 = c1.y + deltaY
+  return Math.abs(c2.y - y2) < c2.radius
+}
 
 export function makeSparks(obs: Observer, character: SphereCharacter, count: number, theta0: number) {
   const degree = Math.PI / count

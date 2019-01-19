@@ -9,7 +9,7 @@ export interface Weapon {
 	destroy(character: Character): void
 }
 
-class Gun implements Weapon {
+export class Gun implements Weapon {
 	private bullets: Map<symbol,Bullet> = new Map()
 	constructor(private ammo: number) {
 	}
@@ -43,7 +43,7 @@ class Gun implements Weapon {
 	}
 }
 
-class Laser implements Weapon {
+export class Laser implements Weapon {
 	private beam: Beam | null = null;
 	character: Character|null = null;
 	constructor(private seconds: number) {
@@ -82,7 +82,7 @@ class Laser implements Weapon {
 	}
 } 
 
-class Beam extends RectangleCharacter {
+export class Beam extends RectangleCharacter {
 	radius: number = 1
 	theta: number = 0
 	friction: number = 0

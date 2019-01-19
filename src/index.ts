@@ -25,7 +25,6 @@ import Math2 from 'utils/math2'
   canvas.width = width
   canvas.height = height
 
-
   // handleMessage(o)
   // isTouchDevice() && handleTouch(o)
 
@@ -38,6 +37,7 @@ import Math2 from 'utils/math2'
 	game.register((obs: Observer) => {
 	    const ship = makeShip(obs, width, height) 
 		ship.registerKeyboard(keyboard)
+
 		makeAsteroids(obs, width, height, 10)
 	})
 	game.start()
@@ -46,8 +46,8 @@ import Math2 from 'utils/math2'
 function makeShip (obs: Observer, width: number, height: number): any { 
 	// NOTE: The type is no longer Ship, but something that extends Ship.
 	const BattleShip = withBullets(withTeleport(withHealthBar(withRepeatBoundary(width, height)(Ship))))
-	const x = 100
-	const y = 100
+	const x = Math.round(width / 2)
+	const y = Math.round(height / 2) 
 	const radius = 15
 	return new BattleShip(obs, x, y, radius)
 }

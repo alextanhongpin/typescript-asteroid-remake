@@ -1,10 +1,12 @@
 import { CharacterConstructor } from 'models/character'
 
+export const DAMAGE = 'damage'
+export const HEALTH_ZERO = 'health_zero'
 export interface Damageable {
 	hp: number
 	maxHp: number
 
-	damage(n: number): boolean
+	damage(n: number): void 
 }
 
 export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
@@ -16,12 +18,27 @@ export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
 		spacing: number = 1
 		padding: number = 2
 		visible: boolean = false 
+		private visibleTimeout = 0 
+		private visibleDuration = 1000
+		constructor(...props: any[]) {
+			super(...props)
+			this.once(DAMAGE, this.damage.bind(this))
+		}
 		damage (n: number) {
 			this.hp -= n
 			if (this.hp < 0) {
 				this.hp = 0
 			}
-			return this.hp === 0 
+
+			this.visible = true
+			this.visibleTimeout && window.clearTimeout(this.visibleTimeout)
+			this.visibleTimeout = window.setTimeout(() => {
+				this.visible = false
+			}, this.visibleDuration)
+
+			if (this.hp === 0) {
+				this.emit(HEALTH_ZERO)
+			}
 		}
 		draw (ctx: CanvasRenderingContext2D) {
 			super.draw(ctx)

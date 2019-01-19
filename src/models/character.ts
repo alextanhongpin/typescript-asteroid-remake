@@ -2,12 +2,12 @@ import { Vector } from 'models/vector'
 import { Movable } from 'models/movable'
 import { Drawable } from 'models/drawable'
 import { Updatable } from 'models/updatable'
-import { Observer } from 'models/observable'
+import { Observer, Observable } from 'models/observable'
 
 export type CharacterConstructor<T = Character> = new (...args: any[]) => T
 
 // Character represents a game character, and can be a ship, alien etc.
-export class Character implements Vector, Movable, Drawable, Updatable {
+export class Character extends Observable implements Vector, Movable, Drawable, Updatable {
 	id: symbol
 	x: number
 	y: number
@@ -17,13 +17,14 @@ export class Character implements Vector, Movable, Drawable, Updatable {
 	obs: Observer;
 
 	constructor (obs: Observer, x: number, y: number) {
+		super()
 		this.id = Symbol(this.constructor.name)
 		this.obs = obs
 		this.x = x
 		this.y = y
 
 		// Self-discovery.
-		obs.emit('register', this)
+		this.obs.emit('register', this)
 	}
 
 	draw (ctx: CanvasRenderingContext2D) {
