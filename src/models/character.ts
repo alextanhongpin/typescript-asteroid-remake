@@ -3,11 +3,14 @@ import { Movable } from 'models/movable'
 import { Drawable } from 'models/drawable'
 import { Updatable } from 'models/updatable'
 import { Observer, Observable } from 'models/observable'
+interface Destroyable {
+	destroy(): void
+}
 
 export type CharacterConstructor<T = Character> = new (...args: any[]) => T
 
 // Character represents a game character, and can be a ship, alien etc.
-export class Character extends Observable implements Vector, Movable, Drawable, Updatable {
+export class Character extends Observable implements Vector, Movable, Drawable, Updatable, Destroyable {
 	id: symbol
 	x: number
 	y: number
@@ -15,6 +18,7 @@ export class Character extends Observable implements Vector, Movable, Drawable, 
 	theta: number = 0
 	friction: number = 0.95
 	obs: Observer;
+	alpha: number = 1
 
 	constructor (obs: Observer, x: number, y: number) {
 		super()
@@ -27,8 +31,8 @@ export class Character extends Observable implements Vector, Movable, Drawable, 
 		this.obs.emit('register', this)
 	}
 
-	draw (ctx: CanvasRenderingContext2D) {
-		ctx.save()
+	draw (_: CanvasRenderingContext2D) {
+		throw new Error('draw not implemented')
 	}
 
 	update () {
@@ -40,6 +44,10 @@ export class Character extends Observable implements Vector, Movable, Drawable, 
 		if (this.friction > 0) {
 			this.velocity *= this.friction
 		}
+	}
+	destroy() {
+		this.obs.emit('unregister', this)
+		this.emit('unregister', this)
 	}
 }
 

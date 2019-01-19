@@ -8,7 +8,9 @@ import { Bullet } from 'models/bullet'
 import Math2 from 'utils/math2'
 import { Particle } from 'models/particle'
 import { DAMAGE, HEALTH_ZERO } from 'models/damageable'
-import { Laser, Beam } from 'models/weaponize'
+import { Beam } from 'models/weaponize'
+import { Alien, AlienBullet } from 'models/alien'
+import { Ship } from 'models/ship'
 
 export interface Pausable {
 	pause(): void
@@ -63,36 +65,48 @@ export class GameEngine extends Observable implements Engine, Pausable, Startabl
 			if (char1 === char2) continue
 
 			// When the ship bullet hits the asteroid.
-			if (char1 instanceof Bullet && char2 instanceof Asteroid) {
-				const [bullet, asteroid] = [char1, char2]
-				if (checkCollision(bullet, asteroid)) {
+			if (char1 instanceof Bullet && (char2 instanceof Asteroid || char2 instanceof Alien)) {
+				const [bullet, enemy] = [char1, char2]
+				if (checkCollision(bullet, enemy)) {
 					// Display effects.
-					makeSparks(char1.obs, bullet, 6, checkAngle(asteroid, bullet))
+					makeSparks(char1.obs, bullet, 6, checkAngle(enemy, bullet))
 					bullet.destroy()
 					this.characters.delete(bullet.id)
 
-					// Apply damage to asteroid.
-					asteroid.emit(DAMAGE, 10)
+					// Apply damage to enemy.
+					enemy.emit(DAMAGE, 10)
 
-					// If asteroid health is -tive, destroy it.
-					asteroid.once(HEALTH_ZERO, () => {
-						this.characters.delete(asteroid.id)
+					// If enemy health is -tive, destroy it.
+					enemy.once(HEALTH_ZERO, () => {
+						this.characters.delete(enemy.id)
 					})
 				}
 			}
 
-			if (char1 instanceof Beam && char2 instanceof Asteroid) {
-				const [laser, asteroid] = [char1, char2]
-				if (checkLaserCollision(laser, asteroid)) {
+			if (char1 instanceof Beam && (char2 instanceof Asteroid || char2 instanceof Alien)) {
+				const [laser, enemy] = [char1, char2]
+				if (checkLaserCollision(laser, enemy)) {
 					// TODO: Get the laser damage.
-					asteroid.emit(DAMAGE, 1)
+					enemy.emit(DAMAGE, 1)
 
 					// If asteroid health is -tive, destroy it.
-					asteroid.once(HEALTH_ZERO, () => {
-						this.characters.delete(asteroid.id)
+					enemy.once(HEALTH_ZERO, () => {
+						this.characters.delete(enemy.id)
 					})
 				}
 			}
+
+			if (char1 instanceof AlienBullet && char2 instanceof Ship) {
+				const [bullet, ship] = [char1, char2]
+				if (checkCollision(bullet, ship)) {
+					bullet.destroy()
+					ship.emit(DAMAGE, 10)
+					ship.once(HEALTH_ZERO, () => {
+						// window.alert('game over')
+					})
+				}
+			}
+
 		}
 	}
 	pause() {
@@ -124,7 +138,10 @@ export function checkCollision(c1: SphereCharacter, c2: SphereCharacter): boolea
 export function checkLaserCollision(c1: Character, c2: SphereCharacter): boolean {
   const deltaY = Math.tan(c1.theta) * (c2.x - c1.x)
   const y2 = c1.y + deltaY
-  return Math.abs(c2.y - y2) < c2.radius
+  const laserAngle = Math.cos(c1.theta)
+  const isNegative = laserAngle < 0
+  const isInPath = isNegative ? c2.x < c1.x : c2.x > c1.x
+  return Math.abs(c2.y - y2) < c2.radius && isInPath 
 }
 
 export function makeSparks(obs: Observer, character: SphereCharacter, count: number, theta0: number) {

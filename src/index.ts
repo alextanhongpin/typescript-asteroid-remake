@@ -1,6 +1,3 @@
-// import { Observer } from 'models/observable'
-// import { isTouchDevice, onTouch } from 'utils/touch'
-
 import { 
 	withHealthBar, 
 	withTeleport, 
@@ -10,6 +7,8 @@ import {
 	GameEngine,
 	KeyboardController,
 	Asteroid,
+	Alien,
+	withGun,
 	Observer,
 } from 'models/index'
 
@@ -25,12 +24,6 @@ import Math2 from 'utils/math2'
   canvas.width = width
   canvas.height = height
 
-  // handleMessage(o)
-  // isTouchDevice() && handleTouch(o)
-
-  // let ship = shipFactory.build(o, width, height)
-  // let asteroids = repeat(10, () => asteroidFactory.build(o, width, height))
-  // let aliens = repeat(2, () => alienFactory.build(o, width, height))
   const keyboard = new KeyboardController()
 
   const game = new GameEngine(canvas)
@@ -38,24 +31,39 @@ import Math2 from 'utils/math2'
 	    const ship = makeShip(obs, width, height) 
 		ship.registerKeyboard(keyboard)
 
+		const aliens = makeAlien(obs, width, height, 2)
+		aliens.forEach((alien: any) => {
+			alien.emit('track', ship)
+		})
 		makeAsteroids(obs, width, height, 10)
 	})
 	game.start()
 })()
 
+
+function makeAlien(obs: Observer, width: number, height: number, n: number): any {
+	const bounded = withRepeatBoundary(width, height)
+
+	return Array(n).fill(() => {
+		const x = Math2.random(0, width)
+		const y = Math2.random(0, height) 
+		const radius = 15
+		return new (withHealthBar(true)(withGun(withBullets(bounded(Alien)))))(obs, x, y, radius)
+	}).map(fn => fn())
+}
+
 function makeShip (obs: Observer, width: number, height: number): any { 
 	// NOTE: The type is no longer Ship, but something that extends Ship.
-	const BattleShip = withBullets(withTeleport(withHealthBar(withRepeatBoundary(width, height)(Ship))))
+	const BattleShip = withBullets(withTeleport(withHealthBar(true)(withRepeatBoundary(width, height)(Ship))))
 	const x = Math.round(width / 2)
 	const y = Math.round(height / 2) 
 	const radius = 15
 	return new BattleShip(obs, x, y, radius)
 }
 
-
 function makeAsteroids(obs: Observer, width: number, height: number, n: number): any {
 
-  const BoundedAsteroid = withHealthBar(withRepeatBoundary(width, height)(Asteroid))
+  const BoundedAsteroid = withHealthBar(false)(withRepeatBoundary(width, height)(Asteroid))
 	const [minRadius, maxRadius] = [30, 50]
 	const asteroids = Array(n).fill(() => {
 		return new BoundedAsteroid(
@@ -69,51 +77,3 @@ function makeAsteroids(obs: Observer, width: number, height: number, n: number):
 	return asteroids
 }
 
-// function handleMessage(o: Observer) {
-//   let messageView = document.getElementById('message')!
-//   let messageTimeout: number
-//   let MESSAGE = 'message'
-//
-//   o.on(MESSAGE, (msg: string) => {
-//     if (messageView.innerHTML !== '') {
-//       return
-//     }
-//     messageView.innerHTML = msg
-//
-//     messageTimeout && window.clearTimeout(messageTimeout)
-//     messageTimeout = window.setTimeout(() => {
-//       messageView.innerHTML = ''
-//     }, 3000)
-//   })
-// }
-//
-// function handleTouch(o: Observer) {
-//   let View = {
-//     up: document.getElementById('up')!,
-//     left: document.getElementById('left')!,
-//     right: document.getElementById('right')!,
-//     shoot: document.getElementById('shoot')!,
-//     teleport: document.getElementById('teleport')!,
-//     weapon: document.getElementById('weapon')!,
-//     help: document.getElementById('help')!
-//   }
-//   let Events: ObserverEvents = {
-//     TOUCH_UP: 'touch:up',
-//     TOUCH_LEFT: 'touch:left',
-//     TOUCH_RIGHT: 'touch:right',
-//     TOUCH_SHOOT: 'touch:shoot',
-//     TOUCH_SWAP_WEAPON: 'touch:swap',
-//     TOUCH_TELEPORT: 'touch:teleport'
-//   }
-//   Object.values(View).forEach((el: HTMLElement) => {
-//     el.style.display = 'block'
-//   })
-//   View.help.style.display = 'none'
-//
-//   onTouch(View.up, () => o.emit(Events.TOUCH_UP))
-//   onTouch(View.left, () => o.emit(Events.TOUCH_LEFT))
-//   onTouch(View.right, () => o.emit(Events.TOUCH_RIGHT))
-//   onTouch(View.shoot, () => o.emit(Events.TOUCH_SHOOT))
-//   onTouch(View.teleport, () => o.emit(Events.TOUCH_TELEPORT))
-//   onTouch(View.weapon, () => o.emit(Events.TOUCH_SWAP_WEAPON))
-// }

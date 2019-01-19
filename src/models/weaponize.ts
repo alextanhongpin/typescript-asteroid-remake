@@ -106,15 +106,15 @@ export class Beam extends RectangleCharacter {
 }
 
 function _rainbowGradient(ctx: CanvasRenderingContext2D): CanvasGradient {
-  let gradient = ctx.createLinearGradient(10, 0, 500, 0)
-  gradient.addColorStop(0, 'red')
-  gradient.addColorStop(1 / 6, 'orange')
-  gradient.addColorStop(2 / 6, 'yellow')
-  gradient.addColorStop(3 / 6, 'green')
-  gradient.addColorStop(4 / 6, 'blue')
-  gradient.addColorStop(5 / 6, 'indigo')
-  gradient.addColorStop(1, 'violet')
-  return gradient
+	const gradient = ctx.createLinearGradient(10, 0, 500, 0)
+	gradient.addColorStop(0, 'red')
+	gradient.addColorStop(1 / 6, 'orange')
+	gradient.addColorStop(2 / 6, 'yellow')
+	gradient.addColorStop(3 / 6, 'green')
+	gradient.addColorStop(4 / 6, 'blue')
+	gradient.addColorStop(5 / 6, 'indigo')
+	gradient.addColorStop(1, 'violet')
+	return gradient
 }
 
 export function withBullets<T extends CharacterConstructor>(TBase: T): T {

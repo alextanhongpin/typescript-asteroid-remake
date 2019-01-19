@@ -3,8 +3,8 @@ import { CharacterConstructor } from 'models/character'
 export function withRepeatBoundary<T extends CharacterConstructor>(width: number, height: number): (TBase: T) => T  {
 	return function (TBase: T): T {
 		return class extends TBase {
-			draw (ctx: CanvasRenderingContext2D) {
-				super.draw(ctx)
+			update () {
+				super.update()
 				if (this.x < 0) this.x = width
 				if (this.x > width) this.x = 0
 				if (this.y < 0) this.y = height
@@ -19,4 +19,15 @@ export function isOutOfBound(x: number, y: number): boolean {
 		|| x > window.innerWidth 
 		|| y < 0
 		|| y > window.innerHeight
+}
+
+export function withOutOfBound<T extends CharacterConstructor>(TBase: T): T {
+	return class extends TBase {
+		update() {
+			super.update()
+			if (isOutOfBound(this.x, this.y)) {
+				this.destroy()
+			}
+		}
+	}
 }

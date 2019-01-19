@@ -9,7 +9,9 @@ export interface Damageable {
 	damage(n: number): void 
 }
 
-export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
+export function withHealthBar<T extends CharacterConstructor>(invicibility: boolean): (TBase: T) => T {
+	return function (TBase: T): T {
+	
 	return class extends TBase implements Damageable {
 		hp: number = 100
 		maxHp: number = 100
@@ -17,17 +19,30 @@ export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
 		height: number = 5
 		spacing: number = 1
 		padding: number = 2
+
 		visible: boolean = false 
 		private visibleTimeout = 0 
 		private visibleDuration = 1000
+
+		private invisibilityMode = false
+		private invisibilityDuration = 1000 
+		private invisibilityTimeout = 0
+		private flickerTimeout = 0
+		private isFlickering = false
+		private alphaState = false
+
 		constructor(...props: any[]) {
 			super(...props)
 			this.once(DAMAGE, this.damage.bind(this))
 		}
 		damage (n: number) {
-			this.hp -= n
-			if (this.hp < 0) {
-				this.hp = 0
+			if (this.invisibilityMode) {
+				return
+			}
+			this.hp = Math.max(0, this.hp - n)
+			if (invicibility) {
+				this.enterInvisiblityMode(this.invisibilityDuration)
+				this.flicker(this.invisibilityDuration)
 			}
 
 			this.visible = true
@@ -68,6 +83,10 @@ export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
 			ctx.closePath()
 			ctx.restore()
 		}
+		update () {
+			super.update()
+			this.updateFlicker()
+		}
 		healthColor(ratio: number): string {
 			if (ratio < 0.25) {
 				return 'red'
@@ -77,5 +96,40 @@ export function withHealthBar<T extends CharacterConstructor>(TBase: T): T {
 			}
 			return 'white'
 		}
+
+  private enterInvisiblityMode(duration: number) {
+    this.invisibilityMode = true
+    this.invisibilityTimeout && window.clearTimeout(this.invisibilityTimeout)
+    this.invisibilityTimeout = window.setTimeout(() => {
+      this.invisibilityMode = false
+    }, duration)
+  }
+  private flicker(duration: number) {
+    this.isFlickering = true
+    this.flickerTimeout && window.clearTimeout(this.flickerTimeout)
+    this.flickerTimeout = window.setTimeout(() => {
+      this.isFlickering = false
+    }, duration)
+  }
+		  private updateFlicker() {
+			if (this.isFlickering) {
+			  if (this.alpha > 0.1) {
+				if (!this.alphaState) {
+				  this.alpha -= 0.1
+				}
+			  } else {
+				this.alphaState = true
+			  }
+			  if (this.alphaState) {
+				this.alpha += 0.1
+				if (this.alpha > 0.9) {
+				  this.alphaState = false
+				}
+			  }
+			} else {
+			  this.alpha = 1
+			}
+		  }
+	}
 	}
 }

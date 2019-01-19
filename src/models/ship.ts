@@ -12,8 +12,7 @@ export class Ship extends SphereCharacter implements Character, Teleportable {
 	readonly rotation: number = Math2.degreeToTheta(10)
 
 	draw(ctx: CanvasRenderingContext2D) {
-		const alpha = 1
-		const { x, y, radius, theta } = this
+		const { x, y, radius, theta, alpha } = this
 		ctx.save()
 		ctx.translate(x, y)
 		ctx.rotate(theta)
