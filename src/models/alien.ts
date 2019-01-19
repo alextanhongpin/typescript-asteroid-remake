@@ -1,146 +1,148 @@
-import Math2 from 'utils/math2'
-import { Character, CharacterConstructor, SphereCharacter } from 'models/character'
-import { withOutOfBound, randomX, randomY } from 'models/boundary'
+import {
+  Character,
+  CharacterConstructor,
+  SphereCharacter,
+  DEREGISTER,
+} from 'models/character';
+export const TRACK = Symbol('track');
+export const SHOOT = Symbol('shoot');
+import Math2 from 'utils/math2';
+import { AlienBullet, Bullet } from 'models/bullet';
+import { Boundary, withOutOfBound } from 'models/boundary';
+import { sleep } from 'utils/time';
 
 export class Alien extends SphereCharacter {
-	friction = 0.99;
-	velocity = 3;
+  friction = 0.99;
+  velocity = 5;
+  theta = Math2.randomTheta();
+  trackers: Character[] = [];
+  readonly color = 'white';
+  readonly programIntervalDuration = Math2.random(2750, 3250);
+  readonly shootDuration = 1000;
+  programInterval: number = 0;
+  constructor(...props: any[]) {
+    super(...props);
+    this.programInterval = window.setInterval(
+      () => this.flightProgram(),
+      this.programIntervalDuration,
+    );
+    this.once(TRACK, (character: Character) => {
+      this.trackers.push(character);
+    });
+    this.on(DEREGISTER, () => {
+      window.clearInterval(this.programInterval);
+    });
+  }
 
-	// Randomize the start angle.
-	theta = Math2.random(0, 2 * Math.PI)
+  async flightProgram() {
+    // Reset velocity.
+    this.friction = 0.99;
+    this.velocity = 5;
 
-	// Keep track of player movement.
-	trackers: Character[] = []
+    // Change the orientation.
+    this.theta = Math2.randomTheta();
 
-	// The duration to execute shoot and teleport commands.
-	programInterval = Math2.random(2750, 3250)
+    // Randomize location in the game world.
+    this.x = Math2.randomX();
+    this.y = Math2.randomY();
 
-	constructor(...props: any[]) {
-		super(...props)
+    // Shoot twice.
+    this.shootProgram();
+    await sleep(this.shootDuration);
+    this.shootProgram();
+  }
 
-		window.setInterval(() => this.flightProgram(), this.programInterval)
+  shootProgram() {
+    for (let character of this.trackers) {
+      this.emit(SHOOT, character);
+    }
+  }
 
-		this.once('track', (character: Character) => {
-			this.trackers.push(character)
-		})
-	}
+  draw(ctx: CanvasRenderingContext2D) {
+    const { x, y, alpha, color } = this;
+    ctx.save();
+    ctx.translate(x, y);
 
-	flightProgram() {
-		// Reset velocity.
-		this.friction = 0.99
-		this.velocity = 3
+    // Head
+    ctx.beginPath();
+    ctx.moveTo(-15, -3);
+    ctx.bezierCurveTo(-20, -15, 20, -15, 15, -3);
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.stroke();
+    ctx.closePath();
 
-		// Change the orientation.
-		this.theta = Math2.random(0, 2 * Math.PI)
+    // Body
+    ctx.beginPath();
+    ctx.rect(-20, -3, 40, 3);
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.stroke();
+    ctx.closePath();
 
-		// Randomize location in the game world.
-		this.x = randomX() 
-		this.y = randomY()
+    // Bottom
+    ctx.beginPath();
+    ctx.moveTo(20, 0);
+    ctx.lineTo(30, 5);
+    ctx.lineTo(-30, 5);
+    ctx.lineTo(-20, 0);
+    ctx.moveTo(15, 5);
+    ctx.lineTo(18, 10);
+    ctx.moveTo(-15, 5);
+    ctx.lineTo(-18, 10);
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
 
-		// Shoot twice.
-		this.shootProgram()
-		window.setTimeout(() => {
-			this.shootProgram()
-		}, 1000) 
-	}
+    // Tracking eye.
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
 
-	shootProgram () {
-		for (let character of this.trackers) {
-			this.emit('shoot', character)
-		}
-	}
+    const theta = this.trackers.length
+      ? Math2.angleBetween(this, this.trackers[0])
+      : 0;
+    ctx.arc(5 * Math.cos(theta), 5 * Math.sin(theta), 2, 0, Math.PI * 2, false);
 
-	draw(ctx: CanvasRenderingContext2D) {
-	  const { x, y, alpha } = this
-	  ctx.save()
-	  ctx.translate(x, y)
-
-	  // Head
-	  ctx.beginPath()
-	  ctx.moveTo(-15, -3)
-	  ctx.bezierCurveTo(-20, -15, 20, -15, 15, -3)
-	  ctx.strokeStyle = 'white'
-	  ctx.globalAlpha = alpha
-	  ctx.stroke()
-	  ctx.closePath()
-
-	  // Body
-	  ctx.beginPath()
-	  ctx.rect(-20, -3, 40, 3)
-	  ctx.strokeStyle = 'white'
-	  ctx.globalAlpha = alpha
-	  ctx.stroke()
-	  ctx.closePath()
-
-	  // Bottom
-	  ctx.beginPath()
-	  ctx.moveTo(20, 0)
-	  ctx.lineTo(30, 5)
-	  ctx.lineTo(-30, 5)
-	  ctx.lineTo(-20, 0)
-	  ctx.moveTo(15, 5)
-	  ctx.lineTo(18, 10)
-	  ctx.moveTo(-15, 5)
-	  ctx.lineTo(-18, 10)
-	  ctx.strokeStyle = 'white'
-	  ctx.globalAlpha = alpha
-	  ctx.stroke()
-	  ctx.closePath()
-	  ctx.restore()
-
-	  // Tracking eye.
-	  ctx.save()
-	  ctx.translate(x, y)
-	  ctx.beginPath()
-		
-	  const theta = this.trackers.length
-		? checkAngle(this, this.trackers[0])
-		: 0
-	  ctx.arc(5 * Math.cos(theta), 5 * Math.sin(theta), 2, 0, Math.PI * 2, false)
-	  ctx.fillStyle = 'white'
-	  ctx.fill()
-	  ctx.closePath()
-	  ctx.restore()
-	}
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.closePath();
+    ctx.restore();
+  }
 }
-
 
 export function withGun<T extends CharacterConstructor>(TBase: T): T {
-	return class extends TBase {
-		private gun: TrackerGun = new TrackerGun()
-		constructor(...props: any[]) {
-			super(...props)
-			this.once('shoot', (character: Character) => {
-				this.gun.shoot(this, character)
-			})
-		}
-	}
+  return class extends TBase {
+    private gun: Gun = new Gun();
+    constructor(...props: any[]) {
+      super(...props);
+      this.once(SHOOT, (character: Character) => {
+        this.gun.shoot(this, character);
+      });
+    }
+  };
 }
 
-export class AlienBullet extends SphereCharacter {
-	friction = 0
-	velocity = 5
-}
+class Gun {
+  bullets: Map<symbol, Bullet> = new Map();
+  readonly maxAmmo = 5;
 
-class TrackerGun {
-	bullets: Map<symbol, AlienBullet> = new Map()
-	maxAmmo = 5
-	shoot (character: Character, target: Character) {
-		const { x, y, obs } = character
-		const radius = 2
-		if (this.bullets.size >= this.maxAmmo) {
-			return
-		}
-		const bullet = new (withOutOfBound(AlienBullet))(obs, x, y, radius)
-		bullet.theta = checkAngle(character, target)
-		bullet.once('unregister', (character: Character) => {
-			character.off('unregister')
-			this.bullets.delete(character.id)
-		})
-		this.bullets.set(bullet.id, bullet)
-	}
-}
+  shoot(character: Character, target: Character) {
+    if (this.bullets.size >= this.maxAmmo) {
+      return;
+    }
+    const { x, y, obs } = character;
+    const radius = 2;
+    const bounded = withOutOfBound(new Boundary());
 
-export function checkAngle(c1: Character, c2: Character) {
-  return Math.atan2(c2.y - c1.y, c2.x - c1.x)
+    const bullet = <AlienBullet>new (bounded(AlienBullet))(obs, x, y, radius);
+    bullet.theta = Math2.angleBetween(character, target);
+    bullet.once(DEREGISTER, (character: Character) => {
+      character.off(DEREGISTER);
+      this.bullets.delete(character.id);
+    });
+    this.bullets.set(bullet.id, bullet);
+  }
 }

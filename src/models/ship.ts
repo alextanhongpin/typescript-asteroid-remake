@@ -1,60 +1,62 @@
-import { Character, SphereCharacter } from 'models/character'
-import Math2 from 'utils/math2'
-import { Controller } from 'models/controller'
-import { Teleportable } from 'models/teleportable'
+import { Character, SphereCharacter } from 'models/character';
+import {
+  Controller,
+  UP,
+  LEFT,
+  RIGHT,
+  SHIFT,
+  SPACE,
+  ENTER,
+} from 'models/controller';
+import { SHOOT, SWAP_WEAPON } from 'models/weaponize';
+import { TELEPORT } from 'models/teleportable';
+import Math2 from 'utils/math2';
 
-export class Ship extends SphereCharacter implements Character, Teleportable {
-	theta: number = 0
-	velocity: number = 1
+export class Ship extends SphereCharacter implements Character {
+  theta: number = 0;
+  velocity: number = 1;
 
-	readonly friction: number = 0.95
-	readonly speed: number = 8
-	readonly rotation: number = Math2.degreeToTheta(10)
+  readonly color: string = 'white';
+  readonly friction: number = 0.95;
+  readonly speed: number = 8;
+  readonly rotation: number = Math2.degreeToTheta(10);
 
-	draw(ctx: CanvasRenderingContext2D) {
-		const { x, y, radius, theta, alpha } = this
-		ctx.save()
-		ctx.translate(x, y)
-		ctx.rotate(theta)
-		ctx.beginPath()
-		ctx.moveTo(0, 0)
-		ctx.lineTo(-radius, -radius)
-		ctx.lineTo(radius, 0)
-		ctx.lineTo(-radius, radius)
-		ctx.globalAlpha = alpha
-		ctx.fillStyle = 'white'
-		ctx.fill()
-		ctx.closePath()
-		ctx.restore()
-	}
+  draw(ctx: CanvasRenderingContext2D) {
+    const { x, y, color, radius, theta, alpha } = this;
 
-	registerKeyboard(ctrl: Controller) {
-		ctrl.on('key:up', () => this.up())
-		ctrl.on('key:left', () => this.left())
-		ctrl.on('key:right', () => this.right())
-		ctrl.on('key:shift', () => this.shift())
-		ctrl.on('key:space', () => this.shoot())
-		ctrl.on('key:enter', () => this.weapon())
-	}
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(theta);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-radius, -radius);
+    ctx.lineTo(radius, 0);
+    ctx.lineTo(-radius, radius);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.closePath();
+    ctx.restore();
+  }
 
-	private up () {
-		this.velocity = this.speed
-	}
+  registerController(c: Controller) {
+    c.on(UP, () => this.up());
+    c.on(LEFT, () => this.left());
+    c.on(RIGHT, () => this.right());
+    c.on(SHIFT, () => this.emit(TELEPORT));
+    c.on(SPACE, () => this.emit(SHOOT));
+    c.on(ENTER, () => this.emit(SWAP_WEAPON));
+  }
 
-	private right () {
-		this.theta += this.rotation
-	}
+  private up() {
+    this.velocity = this.speed;
+  }
 
-	private left () {
-		this.theta -= this.rotation
-	}
+  private right() {
+    this.theta += this.rotation;
+  }
 
-	private shift () {
-		this.teleport()
-	}
-
-	// Creates an empty implementation first, decorate it later.
-	teleport () {}
-	shoot () {}
-	weapon () {}
+  private left() {
+    this.theta -= this.rotation;
+  }
 }

@@ -1,6 +1,5 @@
 export interface Movable {
-	velocity: number;
-	theta: number;
-	friction: number;
+  velocity: number;
+  theta: number;
+  friction: number;
 }
-

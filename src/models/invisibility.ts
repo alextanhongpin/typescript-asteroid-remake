@@ -1,4 +1,4 @@
 export interface Invisibility {
-	isVisible: boolean;
-	setVisibility(state: boolean): void
+  isVisible: boolean;
+  setVisibility(state: boolean): void;
 }

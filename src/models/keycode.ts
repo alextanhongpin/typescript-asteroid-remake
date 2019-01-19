@@ -9,4 +9,4 @@ enum KeyCode {
   Up = 38,
 }
 
-export default KeyCode
+export default KeyCode;
