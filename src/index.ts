@@ -50,7 +50,7 @@ function makeAlien(obs: Observer, boundary: Boundary, n: number): any {
       const y = Math2.randomY();
       const radius = 15;
       const bounded = withRepeatBoundary(boundary);
-      return new (withHealthBar(false)(withGun(withBullets(bounded(Alien)))))(
+      return new (withHealthBar(true)(withGun(withBullets(bounded(Alien)))))(
         obs,
         x,
         y,
