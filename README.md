@@ -17,3 +17,12 @@ $ npm i
 ```bash
 $ npm start
 ```
+
+
+## Things I learnt
+
+- Decorators in Typescript
+- decoupling functionalities through event-emitter (observer)
+- shared global dispatcher for character registration/deregistration
+- inheritance and adding behaviours dynamically
+- and many more
